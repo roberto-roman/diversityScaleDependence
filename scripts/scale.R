@@ -731,78 +731,6 @@ db_08_bootstrap %>%
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- Beta diversity function ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## obtain random samples from each group
-# eg <- 
-# db_08_bootstrap %>% 
-#   nest(data = -c(fct.elev, group, parcel)) %>% 
-#   arrange(group, fct.elev) %>% 
-#   group_by(fct.elev, group) %>% 
-#   slice_sample(n = 2*2) %>% 
-#   mutate(id.sample = 
-#            rep(2:2, 1) %>% 
-#            paste('sample', ., sep = '_'),
-#          plots.agreggated = 2) %>% 
-#   unnest(data) %>% 
-#   nest(data = -c(group, fct.elev, id.sample, plots.agreggated)) %>% 
-#   pivot_wider(names_from = id.sample, values_from = data)
-
-## calculate beta diversity between sample_1 and sample_2 obtained
-# g1.eg <- 
-# eg[[4]][[1]] %>% 
-#   {table(.$GEN)} %>% 
-#   as.matrix() %>% 
-#   as.data.frame() %>% 
-#   rownames_to_column('species') %>% 
-#   rename(site.1.n = 2)
-# 
-# g2.eg <- 
-# eg[[4]][[5]] %>% 
-#   {table(.$GEN)} %>% 
-#   as.matrix() %>% 
-#   as.data.frame()%>% 
-#   rownames_to_column('species') %>% 
-#   rename(site.2.n = 2)
-# 
-# left_join(g1.eg, g2.eg) %>% 
-#   mutate(across(where(is.numeric), ~replace_na(.x, 0))) %>% 
-#   pivot_longer(c(site.1.n, site.2.n)) %>% 
-#   pivot_wider(names_from = species, values_from = value) %>% 
-#   column_to_rownames('name') %>% 
-#   betadiver(method = 'sor')
-
-## beta diversity for one plot size
-# eg.1 <- 
-# eg %>% 
-#   mutate(sample_1 = 
-#            map(sample_1,
-#                ~.x %>% 
-#                  {table(.$GEN)} %>% 
-#                  as.matrix() %>% 
-#                  as.data.frame() %>% 
-#                  rownames_to_column('species') %>% 
-#                  rename(site.1.n = 2)),
-#          sample_2 = 
-#            map(sample_2,
-#                ~.x %>% 
-#                  {table(.$GEN)} %>% 
-#                  as.matrix() %>% 
-#                  as.data.frame() %>% 
-#                  rownames_to_column('species') %>% 
-#                  rename(site.2.n = 2)),
-#          beta = 
-#            map2(sample_1, sample_2,
-#                 ~left_join(.x, .y) %>% 
-#                   mutate(across(where(is.numeric), ~replace_na(.x, 0))) %>% 
-#                   pivot_longer(c(site.1.n, site.2.n)) %>% 
-#                   pivot_wider(names_from = species, values_from = value) %>% 
-#                   column_to_rownames('name') %>% 
-#                   betadiver(method = 'sor')),
-#          beta = 
-#            map_dbl(beta, 
-#                ~as.matrix(.x) %>% .[1,2])
-#          )
-
-## final beta function with bootstrap and different plot size
 beta.bootstrap <- function(plots.agreggated, replicates = 10, beta.index = 'sor') {
 
   set.seed(123)
@@ -1277,7 +1205,7 @@ db.alpha.01 %>%
 
 
 
-rmarkdown::render("propuesta_investigacion.Rmd")
+# rmarkdown::render("propuesta_investigacion.Rmd")
 
 
 
