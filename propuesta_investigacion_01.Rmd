@@ -1,0 +1,83 @@
+---
+title: "Propuesta de investigación"
+subtitle: "Diversidad de plantas de sotobosque de la Amazonía ecuatoriana a diferentes escalas y altitudes"
+author: "Roberto Román-RR"
+date: "2023-11-10"
+output: 
+  officedown::rdocx_document:
+    reference_docx: template_rmarkdown/template_01.docx
+csl: literature/cse-maestria-01.csl
+bibliography: literature/My collection.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+pacman::p_load(tidyverse, flextable)
+```
+
+# Introducción
+Desde el descubrimiento de los neotrópicos, explorar los procesos relacionados a explicar los patrones de diversidad vegetal, principalmente a través de sus componentes alfa y beta, ha sido una de las temáticas más cautivantes en la ecología [@Bhatta2018]. Estos índices han permitido comparar la diversidad de acuerdo con distintos gradientes de interés (ambientales, degradación), entre épocas y espacialmente [@Sebald2021; @Zhang2015]. Por su importancia, estos han sido objeto de diversos estudios enfocados a mejorar su aplicabilidad y formulación, generando bastante controversia sobre su correcta aplicación [@Jost2007; @Baselga2010]. No obstante, a excepción de notables contribuciones, poco se ha discutido sobre la dependencia espacial de la alfa y beta diversidad [@Dembicz2021; @Keil2019; @Barton2013]. Tal dependencia no es ajena a la ecología, ya que se considera a la relación entre la alfa diversidad y la escala de análisis una de las escasas reglas de esta disciplina [@Sabatini2022]. La escala de análisis se puede dividir en dos componentes principales, la granularidad y la extensión [@Barton2013]. La primera es el tamaño de la unidad de análisis, i.e., el tamaño de cada parcela, y la última hace referencia al área donde se extienden todas las parcelas [@Barton2013].
+
+Actualmente, se entiende que los procesos evolutivos, biogeográficos y ecológicos actúan en diferentes magnitudes según la granularidad de los datos (de aquí en adelante escala de análisis) [@Zarnetske2019]. A nivel local los filtros ambientales, interacciones, y procesos estocásticos (e.g. lluvia de semillas) tendrán mayor influencia en la alfa/beta diversidad, mientras que a grandes escalas procesos biogeográficos y la capacidad de dispersión de las especies tendrán mayor peso [@Barton2013]. A nivel global, la granularidad presenta un efecto pivotante sobre la alfa diversidad, sugiriendo que debe ser incorporada en los modelos para evitar el enmascaramiento del efecto de variables ecológicas y/o biogeográficas [@Sabatini2022]. Controlando la extensión del área de estudio, la incorporación de la granularidad en los modelos, permitiría discernir mejor el efecto de procesos ecológicos y evolutivos en la alfa y beta diversidad de plantas [@Keil2012]. Por ejemplo, en árboles el efecto explicativo de factores ambientales como temperatura y humedad, prevalece aún al incorporar la escala de análisis en los modelos [@Keil2019]. 
+
+Los estudios relacionados a la escala de análisis han sido en su mayoría en árboles y a escalas grandes [@Sabatini2022; @Keil2019; @Keil2012; @Sebald2021]. A nivel local y regional los patrones de diversidad alfa/beta muestran tendencias similares pero de diferente magnitud, posiblemente debido a diferencias biogeográficas o a covariables importantes no incluidas [@Sebald2021; @Zarnetske2019]. En particular, una de las covariables más utilizadas en ecología vegetal para contrastar el efecto de variables de interés es la altitud [@Lomolino2001]. Los gradientes altitudinales son de particular interés al exhibir en pequeñas extensiones de terreno importantes gradientes ambientales, que usualmente se utilizan para explicar los patrones de diversidad de plantas [@Lomolino2001; @Dembicz2021]. Se conoce solo de un estudio que utilice explicitamente la altitud como covariable dentro de modelos de dependencia espacial en la diversidad de plantas, por lo que es incierto su efecto en el neotrópico [@Bhatta2018]. Además de la altitud, la dependencia espacial de la alfa y beta diversidad podría variar según la forma de vida de las plantas [@Bhatta2018]. En plantas de sotobosque, donde los procesos ecológicos y evolutivos son diferentes a los del dosel, la escala de análisis interaccionará potencialmente en diferente magnitud en cada gradiente altitudinal [@Bhatta2018]. Esta conjetura deriva de los patrones de gamma diversidad observados en los neotrópicos, donde el área de los ecosistemas se reduce al aumentar la altitud, mientras que la densidad de especies aumenta [@Lomolino2001].
+
+Ecuador, conocido por ser uno de los países megadiversos del mundo, representa un lugar idóneo para explorar la dependencia espacial de la alfa/beta diversidad de plantas de sotobosque [@Myers2000; @Jenkins2013]. La cadena montañosa de los Andes ha generado un amplio mosaico de ecosistemas contenidos en un extenso gradiente altitudinal, desde los bosques de tierras bajas en la Amazonía, hasta los páramos en las vertientes andinas [@Myers2000; @Jenkins2013]. En este contexto, el presente trabajo evalúa la asociación entre la escala de análisis y la diversidad de plantas de sotobosque de la Amazonía ecuatoriana en diferentes rangos altitudinales.
+
+# Objetivos/Hipótesis
+## Objetivos
+General: Evaluar la asociación entre la escala de análisis y la diversidad de plantas de sotobosque de la Amazonía ecuatoriana en diferentes rangos altitudinales.
+
+- Controlar el efecto de la autocorrelación espacial en la diversidad de plantas de sotobosque mediante la definición de grupos de parcelas geográficamente distintivos.
+- Estimar la diversidad alfa y beta promedio de plantas de sotobosque en diferentes rangos altitudinales.
+- Determinar la fluctuación promedio de la alfa y beta diversidad a diferentes escalas de análisis.
+- Contrastar el efecto de la escala de análisis en la alfa y beta diversidad de plantas de sotobosque en diferentes rangos altitudinales.
+
+## Hipótesis
+- El incremento de la escala de análisis está asociado al incremento de la alfa diversidad y a un descenso en la beta diversidad de plantas vasculares de sotobosque. 
+- Las tasas de cambio en la alfa y beta diversidad de plantas vasculares en función de la escala de análisis son más pronunciados en elevaciones altas, en contraste a elevaciones bajas, donde el cambio en la alfa y beta diversidad es más discreto.
+
+# Metodología
+Los datos a ser utilizados en este trabajo corresponden a una base de datos de diversidad e interacciones ecológicas entre plantas de sotobosque e insectos del Orden Lepidoptera. El objetivo principal de las investigaciones fue evaluar las interacciones ecológicas entre estos grupos (Para una descripción detallada de los métodos utilizados en campo ver @Dyer2007 y @Dyer2010). Los datos botánicos corresponden al censo de los árboles, arbustos y hierbas de sotobosque de hasta 10 m de altura de 637 parcelas de 5x5 m, ubicadas en la Amazonía baja y alta de Ecuador. En el presente trabajo, se utilizará los datos botánicos de esta base de datos para la evaluación de las hipótesis planteadas. 
+
+Estos datos permitirán evaluar el efecto de la escala de análisis en la alfa y beta diversidad. En este contexto, la presente investigación utiliza datos botánicos observados en campo en un rango temporal extenso, por lo que corresponde a un estudio analítico observacional longitudinal retrospectivo.
+
+## Área de estudio
+El área de estudio se ubica en la Amazonía alta y baja de Ecuador, en la provincia de Napo, entre los 200 y 4500 msnm (848185.50, 9934528.14 UTM WGS84 17S). Tiene una extensión de 9300 Km^2^, abarcando las formaciones vegetales de Bosques siempreverdes de tierras bajas, piemontanos, montanos bajos, montanos, y páramo. 
+
+## Diseño metodológico
+Las variables dependientes o de respuesta utilizadas en esta investigación serán la alfa y beta diversidad, expresadas en los distintos índices de diversidad disponibles, en los que destacan el índice de Shannon, Simpson y Sorensen (ver @Jost2007 y @Baselga2010 para detalles en su cálculo). Las variables independientes o predictoras serán la escala de análisis, temperatura, precipitación y la altitud. Los parámetros climáticos se extraerán para cada parcela de los ráster de variables ambientales WorldClim 2.1 [@Fick2017]. La altitud corresponderá al dato asociado a cada parcela obtenido en campo. 
+
+Para el análisis de los datos, se realizará un agrupamiento preliminar con el algoritmo DBSCAN de las 637 parcelas disponibles, en función de su cercanía geográfica y altitudinal. Esto reducirá los problemas asociados a la autocorrelación espacial, y también controlar el efecto de la distancia geográfica en las variables dependientes. Dentro de cada grupo distintivo, se agruparán aleatoriamente parcelas de acuerdo con el factor de agrupamiento o escala de análisis. La escala de análisis será calculada como la suma del área en m^2^ de las n parcelas agrupadas del grupo i y altitud j. Entonces, los datos de flora y datos asociados de las parcelas independientes serán agrupados en nuevas parcelas de mayores dimensiones, dependiendo de la escala de análisis. Esto significa que una nueva parcela de 125 m^2^ es una parcela compuesta de los registros botánicos y datos asociados agrupados de tres parcelas de 25 m^2^ ubicadas en el grupo i y altitud j. 
+
+En cuanto a la diversidad alfa, los datos agrupados en las nuevas parcelas se utilizarán para calcular este índice, mientras que la temperatura y precipitación se calculará como el promedio de las n parcelas agrupadas. Por su parte, la beta diversidad se calculará entre pares de nuevas parcelas de cada i grupo y j altitud, mientras que la temperatura y precipitación serán expresadas como la diferencia entre los pares de parcelas analizados.
+
+El procedimiento descrito permite obtener aleatoriamente n parcelas nuevas de cada i grupo y j altitud. Por lo tanto, se realizará iterativamente este procedimiento mediante bootstrap para obtener múltiples muestras de cada i grupo y j altitud a diferentes escalas de análisis, hasta un máximo 250 m^2^.
+
+## Diseño estadístico
+Para formar los grupos geográfica y altitudinalmente distintivos, se utilizará el algoritmo de agrupamiento no supervisado DBSCAN. Para determinar el efecto de la escala de análisis y de los parámetros ambientales (temperatura y precipitación) en la alfa y beta diversidad, utilizando la altitud como covariable, se aplicarán modelos lineales mixtos generalizados, modelos aditivos generalizados, y modelos mixtos o jerárquicos bayesianos. Se escogerán los modelos con mejor desempeño y ajuste a los datos, en concordancia con los supuestos estadísticos de cada modelo, utilizando para este fin el índice AIC. De ser necesario, se aplicarán distintas transformaciones a los datos (e.g. logaritmo base 10) para mejorar el ajuste de los modelos y/o reducir los residuos. Esto con el fin de cumplir con supuestos estadísticos específicos de cada modelo como, por ejemplo, la homocedasticidad en el caso de modelos lineales.
+
+Los resultados obtenidos se resumirán en tablas y gráficos idóneos, enfatizando los principales hallazgos de esta investigación. Todos los procesos de depuración, manejo, análisis y reportería de datos, se realizarán en el software y ambiente de programación estadística R versión 4.3.2 [@RDevelopmentCoreTeam2023].
+
+# Resultados esperados
+Respecto a la alfa diversidad, se espera un aumento lineal a mayor escala de análisis, hasta alcanzar una asíntota a cierta escala de análisis, similar a las curvas sigmoidales apreciadas en los modelos de acumulación de especies como, por ejemplo, jacknife. No obstante, se espera que el efecto de la escala de análisis va a depender del rango altitudinal. 
+
+En bosques montanos y montanos altos, el efecto tenderá a ser más pronunciado, acumulándose rápidamente taxones en escalas de análisis pequeñas [@Lomolino2001]. En contraste, en tierras bajas y bosques piemontanos, el efecto de la escala será más discreto, observándose una curva de menor pendiente en comparación al anterior rango. En ambos casos el efecto de la escala de análisis será positivo en la diversidad alfa, pero en rangos altitudinales altos este efecto será mayor que en bajos. 
+
+Por su parte, el efecto de la escala de análisis en la beta diversidad será negativo, disminuyendo linealmente la beta diversidad a mayor escala. Similar a lo anterior, el efecto de la escala será más pronunciado en elevaciones altas, y menor en bajas. Entonces, en elevaciones alta la diversidad beta se reducirá rápidamente al aumentar la escala de análisis, mientras que en elevaciones bajas tal disminución se dará en menor proporción. 
+
+Tales patrones podrían responder a la mayor densidad de especies en elevaciones altas. En contraste, en elevaciones bajas la diversidad de plantas suele estar más dispersa en un área de mayor extensión, requiriéndose mayor esfuerzo de muestreo para registrar la diversidad total [@Lomolino2001]. No obstante, en esta relación varias covariables podrían interaccionar, en particular la distancia, temperatura, humedad y pluviosidad. En relación con la distancia, esta variable podría distorsionar la asociación entre la escala y la diversidad a diferentes altitudes, fenómeno conocido como autocorrelación espacial. Por tanto, es necesario controlar esta variable mediante el agrupamiento de parcelas en grupos geográficamente distintivos. Las variables ambientales mencionadas, podrían ser controladas estadísticamente siendo incluidas en los modelos. En el caso de la alfa diversidad, la temperatura promedio se relaciona inversamente con la alfa diversidad en la mayoría de rangos altitudinales, a excepción del rango 1000-1600 y 2200-2900 m. No obstante, las parcelas de 7 a 10 parcelas agregadas son más diversas en general.
+
+# Cronograma
+```{r, fig.width=7, fig.height=4}
+knitr::include_graphics('misc_files/cronograma.png')
+```
+
+# Presupuesto
+```{r, include=TRUE}
+presupuesto <- readxl::read_xlsx('misc_files/presupuesto_tesis.xlsx')
+flextable(presupuesto) %>% 
+  width(c(1,2,3,4), c(5,3,2,2), unit = 'cm')
+```
+
+# Literatura citada
