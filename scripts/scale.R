@@ -308,38 +308,38 @@ db_05 %>%
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- kmeans clustering ---- 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Poor cluster performance
-db.clustering <- 
-  db_05 %>% 
-  mutate(x = x.utm, y = y.utm) %>%
-  select(NUM, LOC, DATE2,
-         elevation, fct.elev, x.utm, y.utm, x, y) %>%
-  distinct(NUM, LOC, .keep_all = T) %>% 
-  mutate(id = 1:n())
-
-## K-means clustering
-db_elbow <- 
-  tibble(centers = 1:30) %>% 
-  mutate(residual =
-           map_dbl(centers, 
-               ~kmeans(as.matrix(select(db.clustering, elevation, y.utm, x.utm)), 
-                       centers = .x) %>% 
-                 .$withinss %>% 
-                 sum()))
-
-db_elbow %>% 
-  ggplot() +
-  geom_line(aes(centers, residual))
-
-set.seed(132)
-db.clustering %>% 
-  mutate(group = 
-           as.matrix(x.utm, y.utm, elevation) %>% 
-           kmeans(centers = 10, nstart = 40, iter.max = 6000) %>% 
-           .$cluster)  %>%
-  mutate(x = x.utm, y = y.utm) %>% 
-  st_as_sf(coords = c('x', 'y'), crs  = 32717) %>% 
-  write_sf('intermedium/quadrats_kmeans.gpkg')
+# ## Poor cluster performance
+# db.clustering <- 
+#   db_05 %>% 
+#   mutate(x = x.utm, y = y.utm) %>%
+#   select(NUM, LOC, DATE2,
+#          elevation, fct.elev, x.utm, y.utm, x, y) %>%
+#   distinct(NUM, LOC, .keep_all = T) %>% 
+#   mutate(id = 1:n())
+# 
+# ## K-means clustering
+# db_elbow <- 
+#   tibble(centers = 1:30) %>% 
+#   mutate(residual =
+#            map_dbl(centers, 
+#                ~kmeans(as.matrix(select(db.clustering, elevation, y.utm, x.utm)), 
+#                        centers = .x) %>% 
+#                  .$withinss %>% 
+#                  sum()))
+# 
+# db_elbow %>% 
+#   ggplot() +
+#   geom_line(aes(centers, residual))
+# 
+# set.seed(132)
+# db.clustering %>% 
+#   mutate(group = 
+#            as.matrix(x.utm, y.utm, elevation) %>% 
+#            kmeans(centers = 10, nstart = 40, iter.max = 6000) %>% 
+#            .$cluster)  %>%
+#   mutate(x = x.utm, y = y.utm) %>% 
+#   st_as_sf(coords = c('x', 'y'), crs  = 32717) %>% 
+#   write_sf('intermedium/quadrats_kmeans.gpkg')
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- DBSCAN cluster ----
