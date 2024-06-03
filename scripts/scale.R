@@ -306,44 +306,16 @@ db_05 %>%
   mutate(GEN = matched_name2)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ---- kmeans clustering ---- 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ## Poor cluster performance
-# db.clustering <- 
-#   db_05 %>% 
-#   mutate(x = x.utm, y = y.utm) %>%
-#   select(NUM, LOC, DATE2,
-#          elevation, fct.elev, x.utm, y.utm, x, y) %>%
-#   distinct(NUM, LOC, .keep_all = T) %>% 
-#   mutate(id = 1:n())
-# 
-# ## K-means clustering
-# db_elbow <- 
-#   tibble(centers = 1:30) %>% 
-#   mutate(residual =
-#            map_dbl(centers, 
-#                ~kmeans(as.matrix(select(db.clustering, elevation, y.utm, x.utm)), 
-#                        centers = .x) %>% 
-#                  .$withinss %>% 
-#                  sum()))
-# 
-# db_elbow %>% 
-#   ggplot() +
-#   geom_line(aes(centers, residual))
-# 
-# set.seed(132)
-# db.clustering %>% 
-#   mutate(group = 
-#            as.matrix(x.utm, y.utm, elevation) %>% 
-#            kmeans(centers = 10, nstart = 40, iter.max = 6000) %>% 
-#            .$cluster)  %>%
-#   mutate(x = x.utm, y = y.utm) %>% 
-#   st_as_sf(coords = c('x', 'y'), crs  = 32717) %>% 
-#   write_sf('intermedium/quadrats_kmeans.gpkg')
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- DBSCAN cluster ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+db.clustering <-
+  db_05 %>%
+  mutate(x = x.utm, y = y.utm) %>%
+  select(NUM, LOC, DATE2,
+         elevation, fct.elev, x.utm, y.utm, x, y) %>%
+  distinct(NUM, LOC, .keep_all = T) %>%
+  mutate(id = 1:n())
+
 
 ## DBSCAN better algorithm for spatial data
 dist.matrix <- 
@@ -504,11 +476,6 @@ db.double.cluster.01 <-
   db.double.cluster %>% 
   rows_update(outlier.classes, by = 'id')
 
-# db.double.cluster.01 %>% 
-#   count(group, fct.elev) %>% 
-#   filter(n >= 9) %>% 
-#   count(fct.elev)
-
 db.double.cluster.01 %>% 
 st_as_sf(coords = c('x', 'y'), crs  = 32717) %>% 
   write_sf('intermedium/quadrats_total_dbscan.gpkg')
@@ -581,52 +548,7 @@ db_08 <-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- alpha diversity ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## bootstrap example
-# set.seed(123)
-# 
-# df.bootstraped <- 
-# tibble(replicates = 1:9) %>% 
-#   mutate(
-#     samples = 
-#       map(replicates, 
-#           ~db_07 %>% 
-#             nest(data = -c(group, fct.elev, parcel)) %>% 
-#             group_by(group, fct.elev) %>% 
-#             slice_sample(n = 3)),
-#     plots.agreggated = 3) %>% 
-#   unnest(c(samples)) 
-  # unnest(c(data)) %>% 
-  # nest(data = -c(replicates, fct.elev, group)) %>% 
-  # mutate(alpha = 
-  #          map(data, 
-  #              ~.x %>% 
-  #                {table(.$GEN)} %>% 
-  #                renyi(hill = T) %>% 
-  #                .[c('0', '1', '2')] %>% 
-  #                matrix(nrow = 1) %>% 
-  #                `colnames<-`( c('richness', 'shannon', 'simpson')) %>% 
-  #                as.data.frame()
-  #              
-  #          ))
 
-# df.bootstraped %>%
-#   select(-data) %>% view()
-  # unnest(alpha) %>% 
-  # select(-data)
-
-# eg obtain diversity
-# df.bootstraped[[4]][[3]] %>% 
-#   {table(.$GEN)} %>% 
-#   renyi(hill = T) %>% 
-#   .[c('0', '1', '2')] %>% 
-#   matrix(nrow = 1) %>% 
-#   `colnames<-`( c('richness', 'shannon', 'simpson')) %>% 
-#   as.data.frame()
-# 
-# df.bootstraped %>% 
-#   count(fct.elev)
-  
-## iterate bootstrap 
 alpha.bootstrap <- function(plots.agreggated, replicates = 9) {
   
   replicates.x <- seq(1, replicates)
@@ -663,11 +585,6 @@ alpha.bootstrap <- function(plots.agreggated, replicates = 9) {
                    )
            )
 }
-
-## Se debe aprovechar potencial de funciones de vegan que sirven a nivel de comunidad
-# data(BCI)
-# i <- sample(nrow(BCI), 12)
-# mod <- renyi(BCI[i,])
 
 ## se deberia hacer con reemplazo bootstrap?
 db.alpha <- 
@@ -811,7 +728,6 @@ beta.bootstrap <- function(plots.agreggated, replicates = 10, beta.index = 'sor'
 ## Beta diversity
 db.beta <- map(1:10, beta.bootstrap, replicates = 20)
 
-
 ## worldclim biovars are displayed as difference between pairs of plots
 db.beta.01 <- 
 bind_rows(db.beta) %>% 
@@ -847,12 +763,6 @@ db_08_bootstrap %>%
                  
                  )
            )
-
-# beta.dist.plots[[3]][[2]]
-# 
-# beta.dist.plots %>% 
-#   select(-df.species) %>% 
-#   unnest()
 
 geo.dist.plots <-
   db_08_bootstrap %>% 
