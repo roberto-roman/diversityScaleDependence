@@ -2,4 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-desktop.ini
+**/*.ini
+*.ini
+desktop.ini 
+*.gpkg

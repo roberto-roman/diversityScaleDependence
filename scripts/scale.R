@@ -598,9 +598,6 @@ db.alpha %>%
   select(-data) %>% 
   unnest(c(alpha, bio.vars))
 
-db.alpha %>% 
-  bind_rows()
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- Bootstrap for completing sample size ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -736,6 +733,8 @@ bind_rows(db.beta) %>%
   select(-c(sample_1, sample_2, bio.vars.sample_1, bio.vars.sample_2)) %>% 
   unnest(bio.vars)
 
+
+db.beta.01 %>% view()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- spatial analysis of beta ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1115,7 +1114,7 @@ db.alpha.01 %>%
 
 
 
-# rmarkdown::render("propuesta_investigacion.Rmd")
+rmarkdown::render("informe_final.Rmd")
 
 
 
