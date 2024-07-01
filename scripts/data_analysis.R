@@ -2,7 +2,7 @@
 # ---- load data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 source("scripts/scale.R")
-rmarkdown::render("informe_final.Rmd")
+# rmarkdown::render("informe_final.Rmd")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- multiple correlations ----
