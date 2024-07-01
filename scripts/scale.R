@@ -545,6 +545,8 @@ db_08 <-
             by = c('fct.elev', 'parcel')) %>% 
   mutate(year = year(DATE2))
 
+db_08 %>% count(GEN) %>% view()
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- alpha diversity ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -634,12 +636,12 @@ plots.bootstraped %>%
   bind_rows(db_08)
 
 ## each group with at least 20 plots after bootstrap
-db_08_bootstrap %>% 
-  count(group, fct.elev, parcel) %>% 
-  count(group, fct.elev)
-
-db_08_bootstrap %>% 
-  filter(is.na(bio_1))
+# db_08_bootstrap %>% 
+#   count(group, fct.elev, parcel) %>% 
+#   count(group, fct.elev)
+# 
+# db_08_bootstrap %>% 
+#   filter(is.na(bio_1))
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -690,7 +692,7 @@ beta.bootstrap <- function(plots.agreggated, replicates = 10, beta.index = 'sor'
                                as.matrix()),
                        bio.vars =
                          map2(bio.vars.sample_1, bio.vars.sample_2,
-                              ~.x - .y) %>% 
+                              ~abs(.x - .y)) %>% 
                          map(as.data.frame),
                        sample_1 =
                          map(sample_1,
@@ -725,7 +727,7 @@ beta.bootstrap <- function(plots.agreggated, replicates = 10, beta.index = 'sor'
 ## Beta diversity
 db.beta <- map(1:10, beta.bootstrap, replicates = 20)
 
-## worldclim biovars are displayed as difference between pairs of plots
+## worldclim biovars are displayed as absolute difference between pairs of plots
 db.beta.01 <- 
 bind_rows(db.beta) %>% 
   select(-samples) %>% 
@@ -733,8 +735,6 @@ bind_rows(db.beta) %>%
   select(-c(sample_1, sample_2, bio.vars.sample_1, bio.vars.sample_2)) %>% 
   unnest(bio.vars)
 
-
-db.beta.01 %>% view()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- spatial analysis of beta ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -783,15 +783,13 @@ geo.dist.plots <-
                  filter(parcel < name)
                  )
            )
-  
-geo.dist.plots[[2]][[3]] 
 
 ## distribution of distances between plots; cut point
-geo.dist.plots %>% 
-  select(-coords) %>% 
-  unnest() %>%
-  .$distance %>% 
-  hist()
+# geo.dist.plots %>% 
+#   select(-coords) %>% 
+#   unnest() %>%
+#   .$distance %>% 
+#   hist()
 
 ## db of beta and geographic distance between plots
 db.dist.plots <- 
@@ -819,302 +817,45 @@ db.dist.plots %>%
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90))
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ---- Turnover and dominance over time ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-pacman::p_load(codyn)
-
-## create clusters of plots; each group is a replicate for turnover and dominance
-## calculations
-db.turnover.clustering <- 
-db_08 %>% 
-  filter(!is.na(DATE2),
-         group == 7) %>% 
-  mutate(fct.elev = 
-           chop_pretty(elevation, 2),
-         year = year(DATE2)) %>% 
-  # distinct(x.utm, y.utm, elevation)
-  distinct(NUM, LOC, .keep_all = T) %>% 
-  select(NUM, LOC, x.utm, y.utm, elevation)
-
-
-## detect outlier plots with dbscan
-turnover.dbscan.outlier <- 
-  db.turnover.clustering %>% 
-  select(x.utm, y.utm, elevation) %>% 
-  as.matrix() %>% 
-  hdbscan(minPts = 7)
-
-# qgis view
-db.turnover.clustering %>% 
-  mutate(group = turnover.dbscan.outlier$cluster,
-         x = x.utm, y = y.utm) %>% 
-  st_as_sf(coords = c('x', 'y'), crs = 32717) %>% 
-  st_write('intermedium/turnover_clusters.gpkg', append =F)
-
-## filter outlier plots
-db.turnover.clustering.01 <- 
-db.turnover.clustering %>% 
-  mutate(group = turnover.dbscan.outlier$cluster) %>% 
-  filter(group == 2)
-
-## final cluster with kmeans
-set.seed(1111)
-kmeans.clusters.turnover <- 
-  db.turnover.clustering.01 %>% 
-  select(x.utm, y.utm, elevation) %>% 
-  as.matrix() %>% 
-  kmeans(20, nstart = 60)
-
-# qgis view
-db.turnover.clustering.01 %>% 
-  mutate(x = x.utm, y = y.utm,
-         group = kmeans.clusters.turnover$cluster) %>% 
-  st_as_sf(coords = c('x', 'y'), crs = 32717) %>% 
-  st_write('intermedium/turnover_clusters_01.gpkg', append =F)
-
-## filter occ from raw db
-db.turnover.clustering.02 <-
-db.turnover.clustering.01 %>% 
-  mutate(group = kmeans.clusters.turnover$cluster) %>% 
-  select(NUM, LOC, group) %>% 
-  group_by(group) %>% 
-  filter(length(LOC) > 9) %>% 
-  ungroup()
-
-db.turnover.clustering.01 %>% 
-  count(group, sort = T)
-
-## turnover analysis
-turnover.df <- 
-db_08 %>% 
-  semi_join(db.turnover.clustering.02, 
-            by = c('NUM', 'LOC')) %>% 
-  rows_update(db.turnover.clustering.02,
-              by = c('NUM', 'LOC')) %>% 
-  filter(!is.na(year)) %>% 
-  count(group, year, GEN)
-
-turnover.df %>% count(group)
-
-turnover.result <-
-c('total', 'appearance', 'disappearance') %>% 
-  map(
-    ~turnover( 
-      turnover.df,
-      time.var = 'year', 
-      species.var = 'GEN', 
-      abundance.var = 'n',
-      replicate.var = 'group',
-      metric = .x)
-  ) %>% 
-  reduce(left_join, by = c('group', 'year')) %>% 
-  pivot_longer(-c(year, group))
-   
-   
-(turnover.plot <- 
-  turnover.result %>% 
-  ggplot(aes(year, value, color = name, fill = name)) +
-  geom_point() +
-  geom_smooth() +
-  # geom_line() +
-  theme_bw() +
-  labs(y = 'Turnover'))
-
-## rank abundance shift across time
-rank.shift.result <- 
-rank_shift( 
-  turnover.df,
-  time.var = 'year', 
-  species.var = 'GEN', 
-  abundance.var = 'n',
-  replicate.var = 'group')
-
-(rank.shift.plot <- 
-rank.shift.result %>% 
-  mutate(year = str_extract(year_pair, '^\\d+')) %>% 
-  ggplot(aes(year, MRS, group = 1)) +
-  geom_point() +
-  geom_smooth() +
-  labs(y = 'Mean Rank-Abundance Shift') +
-  theme_bw())
-
-## rate change
-rate.change.result <- 
-rate_change_interval( 
-  turnover.df,
-  time.var = 'year', 
-  species.var = 'GEN', 
-  abundance.var = 'n',
-  replicate.var = 'group')
-
-(rate.chage.plot <- 
-rate.change.result %>% 
-  ggplot(aes(interval, distance)) +
-  geom_point() +
-  geom_smooth(method = 'lm') +
-  labs(x = 'Time interval', y = 'Euclidean distance between comunities') +
-  theme_bw())
-
-## dominance rank clock
-(dominance.clock.plot <-  
-turnover.df %>% 
-  group_by(year) %>% 
-  filter(rank(n*-1) < 4) %>% 
-  ggplot() +
-  geom_line(aes(year, n, color = GEN), linewidth = 2) +
-  coord_polar() +
-  theme_bw())
-  
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ---- analysis ----
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-### ALPHA
-(area.alpha.general.plot <- 
-db.alpha.01 %>% 
-  filter(group != 17) %>%
-  # pivot_longer(c(richness, shannon, simpson)) %>% 
-  ggplot(aes(plots.agreggated*25, shannon)) +
-  geom_point() +
-  geom_smooth() +
-  # facet_wrap(vars(fct.elev) ) +
-  labs(x = 'area m2'))
-
-(area.alpha.elev.plot <- 
-db.alpha.01 %>% 
-  filter(group != 17) %>%
-  # pivot_longer(c(richness, shannon, simpson)) %>% 
-  ggplot(aes(plots.agreggated*25, shannon)) +
-  geom_point() +
-  geom_smooth() +
-  facet_wrap(vars(fct.elev) ) +
-  labs(x = 'area m2') +
-  theme_bw())
-
-
-## Multiple correlations between alpha and bio.vars worldclim
-pacman::p_load(GGally)
-db.alpha.01 %>% 
-  select(shannon, starts_with('bio')) %>% 
-  GGally::ggcorr()
-
-## Important variables:
-## bio_8_mean (Mean Temperature of Wettest Quarter),
-## bio_12_mean (anual precipitation), 
-## bio_15_mean (prepitation seasonality)
-## bio_16_mean (precipitation of warmest quarter)
-(alfa.biovar.elev.plot <- 
-db.alpha.01 %>% 
-  mutate(fct.plots.agreggated = 
-           chop_evenly(plots.agreggated, 3)) %>% 
-  ggplot(aes(bio_8_mean, shannon, color = fct.plots.agreggated)) +
-  geom_point() +
-  geom_smooth(method = 'lm') +
-  facet_wrap(vars(fct.elev), scales = 'free' ) +
-  labs(x = 'Mean Temperature of Wettest Quarter', color = 'Plots agreggated'))
-
-
-## possible important variables bio_6, bio_8_mean, bio_12_mean, bio_15_mean,
-## bio_16_mean, bio_19_mean
-## En general, donde es mas humedo hay mas riqueza de especies, asi como 
-## donde es más cálido
-(alfa.biovar.elev.plot.02 <-
-db.alpha.01 %>% 
-  filter(group != 17) %>%
-  mutate(fct.bio =
-           chop_evenly(bio_19_mean, 3)) %>%
-  # count(fct.plots.agreggated) %>% 
-  ggplot(aes(plots.agreggated, shannon, color = fct.bio)) +
-  geom_point() +
-  geom_smooth() +
-  facet_wrap(vars(fct.elev), scales = 'free' ) +
-  labs(color = 'Precipitation of Coldest Quarter') +
-  theme_bw())
-
-
-## doble tendencia en tierras bajas (392. 1022) se da en groups de Lyarina
-## y Jatunsacha (15 y 17). EN Jatun Sacha la diversidad es menor (15),
-## y en Lyiarina la diversidad alpha es muy alta (17)
-db_08 %>% 
-  count(fct.elev, group, parcel, GEN) %>% 
-  group_by(fct.elev, group) %>% 
-  summarise(n.spp = 
-              length(unique(GEN)))
-
-## BETA
-(beta.area.general.plot <- 
-db.beta.01 %>% 
-  ggplot(aes(plots.agreggated*25, 1-beta)) +
-  geom_point() +
-  geom_smooth() +
-  # facet_wrap(~fct.elev) +
-  labs(x = 'area m2'))
-
-(beta.area.elev.plot <- 
-db.beta.01 %>% 
-  ggplot(aes(plots.agreggated*25, 1-beta)) +
-  geom_point() +
-  geom_smooth() +
-  facet_wrap(~fct.elev) +
-  labs(x = 'area m2'))
-
-(beta.biovar.elev.plot <- 
-db.beta.01 %>% 
-  filter(group != 17) %>%
-  mutate(fct.plots.agreggated = 
-           chop_evenly(plots.agreggated, 2)) %>% 
-  ggplot(aes(abs(bio_8_mean), beta, color = fct.plots.agreggated)) +
-  geom_point() +
-  geom_smooth(method = 'lm') +
-  facet_wrap(vars(fct.elev), scales = 'free') +
-  labs(x = 'Absolute difference in Mean Temperature of Wettest Quarter',
-       color = 'Plots agreggated'))
 
 
 ## ALPHA & BETA
-coeff <- 13
+# coeff <- 13
 
-(alfa.beta.area.plot <- 
-db.alpha.01 %>% 
-  filter(group != 17) %>% 
-  left_join(db.beta.01, 
-            by = c('replicates', 'fct.elev', 'group', 'plots.agreggated')) %>% 
-  mutate(beta = 1-beta) %>% 
-  ggplot(aes(plots.agreggated*25)) +
-  geom_point(aes(y = shannon/coeff)) +
-  geom_point(aes(y = beta)) +
-  geom_smooth(aes(y = shannon/coeff, fill = 'shannon'), 
-              color = 'blue') +
-  scale_fill_manual(values = 'blue',
-                    guide = guide_legend(title = NULL)) +
-  ggnewscale::new_scale_fill() +
-  
-  geom_smooth(aes(y = beta, fill = 'beta'), 
-              color = 'green') +
-  scale_fill_manual(values = 'green',
-                    guide = guide_legend(title = NULL)) +
-  ggnewscale::new_scale_fill() +
-  
-  scale_y_continuous(name = 'beta', 
-                     sec.axis = sec_axis(trans = ~.*coeff, name = 'shannon')) +
-  facet_wrap(~fct.elev) +
-  labs(x = 'Area m2') +
-  theme_bw())
-
-
-# db.alpha.01 %>%
-#   filter(group != 17) %>%
-#   left_join(db.beta.01,
-#             by = c('replicates', 'fct.elev', 'group', 'plots.agreggated')) %>%
-#   mutate(beta = 1-beta) %>%
-#   ggplot(aes(shannon, beta)) +
-#   geom_point() +
-#   geom_smooth() +
-#   facet_wrap(~fct.elev, scales = 'free')
+# (alfa.beta.area.plot <- 
+#     db.alpha.01 %>% 
+#     filter(group != 17) %>% 
+#     left_join(db.beta.01, 
+#               by = c('replicates', 'fct.elev', 'group', 'plots.agreggated')) %>% 
+#     mutate(beta = 1-beta) %>% 
+#     ggplot(aes(plots.agreggated*25)) +
+#     geom_point(aes(y = shannon/coeff)) +
+#     geom_point(aes(y = beta)) +
+#     geom_smooth(aes(y = shannon/coeff, fill = 'shannon'), 
+#                 color = 'blue',
+#                 method = 'lm') +
+#     scale_fill_manual(values = 'blue',
+#                       guide = guide_legend(title = NULL)) +
+#     ggnewscale::new_scale_fill() +
+#     
+#     geom_smooth(aes(y = beta, fill = 'beta'), 
+#                 color = 'green',
+#                 method = 'lm') +
+#     scale_fill_manual(values = 'green',
+#                       guide = guide_legend(title = NULL)) +
+#     ggnewscale::new_scale_fill() +
+#     
+#     scale_y_continuous(name = 'Beta diversidad (Sorensen)', 
+#                        sec.axis = sec_axis(trans = ~.*coeff, name = 'Alfa diversidad (Shannon)')) +
+#     facet_wrap(~fct.elev) +
+#     labs(x = expression(paste("Área ", 'm'^2))) +
+#     theme_bw())
 
 
 
-rmarkdown::render("informe_final.Rmd")
+
+
+
 
 
 
