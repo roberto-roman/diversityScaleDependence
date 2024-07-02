@@ -1,116 +1,159 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- load data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-source("scripts/scale.R")
-# rmarkdown::render("informe_final.Rmd")
+# source("scripts/scale.R")
+# rmarkdown::render("informe_final_Rmd")
+pacman::p_load(modelsummary, tinytable)
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- multiple correlations ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-## Multiple correlations between alpha and bio.vars worldclim
+## Multiple correlations between alpha and bio_vars worldclim
 pacman::p_load(GGally)
+
+(multiple_corr <- 
 db.alpha.01 %>% 
   select(shannon, simpson, richness, starts_with('bio')) %>% 
-  GGally::ggcorr(label = TRUE)
+  GGally::ggcorr(label = TRUE))
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- hipotesis 1 ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-db_alpha <- db.alpha.01 %>% filter(group != 17) %>% 
-  mutate(fct.plots =
-           chop_evenly(plots.agreggated, 3),
-         escala = plots.agreggated*25,
-         fct.escala =
-           chop_evenly(escala, 3))
-
+db_alpha <- 
+  db.alpha.01 %>% 
+  filter(group != 17) %>% 
+  set_names(names(.) %>% str_replace('\\.', '_') %>% str_remove('_mean')) %>% 
+  mutate(fct_plots =
+           chop_evenly(plots_agreggated, 3),
+         escala = plots_agreggated*25,
+         fct_escala =
+           chop_evenly(escala, 3),
+         fct_elev=fct_recode(fct_elev, 
+                             '400' = '[392, 1022)',
+                             '1000' = '[1022, 1651)',
+                             '1600' = '[1651, 2281)',
+                             '2300' = '[2281, 2911)',
+                             '2900' = '[2911, 3540)',
+                             '3500' = '[3540, 4170]'
+                             ))
 ## Alpha diversidad
 # Colocar en texto principal
-(area.alpha.elev.plot <- 
+(area_alpha_elev_plot <- 
     db_alpha %>%
-   ggplot(aes(escala, shannon, fill = fct.elev, color = fct.elev)) +
-   geom_point(alpha = 0.6) +
-   geom_smooth(method = 'lm', alpha = 0.1) +
+   ggplot(aes(escala, shannon, fill = fct_elev, color = fct_elev)) +
+   geom_point(alpha = 0.6, show.legend = F) +
+   geom_smooth(method = 'lm', alpha = 0.1, show.legend = F) +
    labs(x = expression(paste("Área ", 'm'^2)), y = 'Diversidad Alpha (Shannon)', color = 'Elevación', fill = 'Elevación') +
-   facet_wrap(vars(fct.elev) ) +
+   facet_wrap(vars(fct_elev) ) +
    theme_bw())
 
 # Colocar en anexos este grafico para ejemplicar mayor riqueza a mayor altitud
-(alfa.biovar.elev.plot.02 <-
+(alfa_biovar_elev_plot_02 <-
     db_alpha %>%
     ggplot() +
-    geom_boxplot(aes(fct.elev, shannon, color = fct.plots)) +
+    geom_boxplot(aes(fct_elev, shannon, color = fct_plots)) +
     labs(x = 'Elevación', color = 'Escala de análisis', y = 'Diversidad Alpha (Shannon)') +
     theme_bw())
 
 # Anova para representar este grafico
-(alfa.biovar.elev.plot.03 <-
+(alfa_biovar_elev_plot_03 <-
     db_alpha %>%
     ggplot() +
-    geom_boxplot(aes(fct.elev, shannon)) +
+    geom_boxplot(aes(fct_elev, shannon)) +
     labs(x = 'Elevación', color = 'Escala de análisis', y = 'Diversidad Alpha (Shannon)') +
     theme_bw())
 
 ## modelos
 # diversidad alpha vs altitud
-diff_alpha_elev <- aov(shannon ~ fct.elev, data = db_alpha)
+diff_alpha_elev <- aov(shannon ~ fct_elev, data = db_alpha)
 posthoc_diff_alpha_elev <- TukeyHSD(diff_alpha_elev)
 
-diff_alpha_elev <- lm(shannon ~ fct.elev, data = db_alpha)
+diff_alpha_elev <- lm(shannon ~ fct_elev, data = db_alpha)
 diff_alpha_elev %>% summary()
 
+ms_anova_alpha_elev <- 
+modelsummary(diff_alpha_elev, statistic = NULL, estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
+             gof_omit = 'AIC|BIC|Log|RMSE', output = 'flextable')
+
 # diversidad alpha vs altitud y escala de análisis
-alpha_vs_elev_grain <- lm(shannon ~ fct.elev + plots.agreggated + fct.elev:plots.agreggated, data = db_alpha)
+alpha_vs_elev_grain <- lm(shannon ~ fct_elev + plots_agreggated + fct_elev:plots_agreggated, data = db_alpha)
 alpha_vs_elev_grain %>% summary()
 
 ## Beta diversidad
 db_beta <- db.beta.01 %>% 
+  set_names(names(.) %>% str_replace('\\.', '_') %>% str_remove('_mean')) %>% 
   filter(group != 17) %>% 
-  mutate(fct.plots =
-           chop_evenly(plots.agreggated, 3),
-         escala = plots.agreggated*25,
-         fct.escala =
-           chop_evenly(escala, 3))
+  mutate(fct_plots =
+           chop_evenly(plots_agreggated, 3),
+         escala = plots_agreggated*25,
+         fct_escala =
+           chop_evenly(escala, 3),
+         fct_elev=fct_recode(fct_elev, 
+                             '400' = '[392, 1022)',
+                             '1000' = '[1022, 1651)',
+                             '1600' = '[1651, 2281)',
+                             '2300' = '[2281, 2911)',
+                             '2900' = '[2911, 3540)',
+                             '3500' = '[3540, 4170]'
+         ))
 
 
 # colocar en escrito principal
-(area.beta.elev.plot <- 
+(area_beta_elev_plot <- 
     db_beta %>%
-    ggplot(aes(escala, 1-beta, fill = fct.elev, color = fct.elev)) +
-    geom_point(alpha = 0.6) +
-    geom_smooth(method = 'lm', alpha = 0.1) +
+    ggplot(aes(escala, 1-beta, fill = fct_elev, color = fct_elev)) +
+    geom_point(alpha = 0.6, show.legend = F) +
+    geom_smooth(method = 'lm', alpha = 0.1, show.legend = F) +
     labs(x = expression(paste("Área ", 'm'^2)), y = 'Diversidad Beta (Sorensen)', color = 'Elevación', fill = 'Elevación') +
-    facet_wrap(vars(fct.elev) ) +
-    # scale_y_continuous(limits = c(0.60, 1)) +
+    facet_wrap(vars(fct_elev) ) +
+    # scale_y_continuous(limits = c(0_60, 1)) +
     theme_bw())
 
 # ejemplicar variación en beta según rango altitudinal
-(beta.biovar.elev.plot.02 <-
+(beta_biovar_elev_plot_02 <-
     db_beta %>%
     ggplot() +
-    geom_boxplot(aes(fct.elev, 1-beta, color = fct.plots)) +
+    geom_boxplot(aes(fct_elev, 1-beta, color = fct_plots)) +
     labs(x = 'Elevación', color = 'Escala de análisis', y = 'Diversidad Beta (Sorensen)') +
     scale_y_continuous(limits = c(0, 0.6)) +
     theme_bw())
 
 # resultados generales de beta diversidad según el rango altitudinal
-(beta.biovar.elev.plot.03 <-
+(beta_biovar_elev_plot_03 <-
     db_beta %>%
     ggplot() +
-    geom_boxplot(aes(fct.elev, 1-beta)) +
+    geom_boxplot(aes(fct_elev, 1-beta)) +
     labs(x = 'Elevación', color = 'Escala de análisis', y = 'Diversidad Beta (Sorensen)') +
     scale_y_continuous(limits = c(0, 0.6)) +
     theme_bw())
 
 ## modelos
 # diversidad beta vs altitud
-diff_beta_elev <- aov(1-beta ~ fct.elev, data = db_beta)
+diff_beta_elev <- aov(1-beta ~ fct_elev, data = db_beta)
 posthoc_diff_beta_elev <- TukeyHSD(diff_beta_elev)
 
-diff_beta_elev <- lm(1-beta ~ fct.elev, data = db_beta)
+diff_beta_elev <- lm(1-beta ~ fct_elev, data = db_beta)
 diff_beta_elev %>% summary()
 
+ms_anova_beta_elev <- 
+  modelsummary(diff_beta_elev, statistic = NULL, estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
+               gof_omit = 'AIC|BIC|Log|RMSE', output = 'flextable')
+
 # diversidad beta vs altitud y escala de análisis
-beta_vs_elev_grain <- lm(1-beta ~ fct.elev + plots.agreggated + fct.elev:plots.agreggated, data = db_beta)
+beta_vs_elev_grain <- lm(1-beta ~ fct_elev + plots_agreggated + fct_elev:plots_agreggated, data = db_beta)
 beta_vs_elev_grain %>% summary()
+
+
+
+# tabla de ambos modelos para estimar alpha y beta diversidad en función de la elev y grain
+ms_alpha_beta_elev_grain <- 
+modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain), 
+             # shape = model  ~ statistic + term,
+             statistic = NULL, 
+             estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
+             gof_omit = 'AIC|BIC|Log|RMSE', 
+             coef_omit = '^fct.+\\d+$',
+             output = 'flextable')
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -119,11 +162,11 @@ beta_vs_elev_grain %>% summary()
 # alpha
 (alpha_bio18 <-
    db_alpha %>% 
-   ggplot(aes(bio_18_mean, shannon, color = fct.escala, fill = fct.escala)) +
+   ggplot(aes(bio_18, shannon, color = fct_escala, fill = fct_escala)) +
    geom_point() +
    geom_smooth(method = 'lm', alpha = 0.1) +
-   facet_wrap(vars(fct.elev), scales = 'free' ) +
-   labs(x = 'Humedad (Precipitación del mes más cálido en mm)', 
+   facet_wrap(vars(fct_elev), scales = 'free' ) +
+   labs(x = 'Precipitación (Precipitación del mes más cálido en mm)', 
         color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
         fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
         y = 'Diversidad alpha (Shannon)') +
@@ -131,10 +174,10 @@ beta_vs_elev_grain %>% summary()
 
 (alpha_bio4 <-
     db_alpha %>% 
-    ggplot(aes(bio_4_mean, shannon, color = fct.escala, fill = fct.escala)) +
+    ggplot(aes(bio_4, shannon, color = fct_escala, fill = fct_escala)) +
     geom_point() +
     geom_smooth(method = 'lm', alpha = 0.1) +
-    facet_wrap(vars(fct.elev), scales = 'free' ) +
+    facet_wrap(vars(fct_elev), scales = 'free' ) +
     labs(x = 'Temperatura (Estacionalidad térmica en C°)', 
          color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
          fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
@@ -143,25 +186,24 @@ beta_vs_elev_grain %>% summary()
 
 
 #beta
-
 (beta_bio18 <-
     db_beta %>% 
-    ggplot(aes(bio_18_mean, 1-beta, color = fct.escala, fill = fct.escala)) +
+    ggplot(aes(bio_18, 1-beta, color = fct_escala, fill = fct_escala)) +
     geom_point() +
     geom_smooth(method = 'lm', alpha = 0.1) +
-    facet_wrap(vars(fct.elev), scales = 'free' ) +
-    labs(x = 'Diferencia absoluta de Humedad (Precipitación del mes más cálido en mm)', 
+    facet_wrap(vars(fct_elev), scales = 'free' ) +
+    labs(x = 'Diferencia absoluta de Precipitación (Precipitación del mes más cálido en mm)', 
          color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
          fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
          y = 'Diversidad beta (Sorensen)') +
     theme_bw())
 
-(beta_bio18 <-
+(beta_bio4 <-
     db_beta %>% 
-    ggplot(aes(bio_4_mean, 1-beta, color = fct.escala, fill = fct.escala)) +
+    ggplot(aes(bio_4, 1-beta, color = fct_escala, fill = fct_escala)) +
     geom_point() +
     geom_smooth( method = 'lm', alpha = 0.1) +
-    facet_wrap(vars(fct.elev), scales = 'free' ) +
+    facet_wrap(vars(fct_elev), scales = 'free' ) +
     labs(x = 'Diferencia absoluta Temperatura (Estacionalidad térmica en C°)', 
          color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
          fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
@@ -171,84 +213,60 @@ beta_vs_elev_grain %>% summary()
 ## modelos
 
 # alpha
-
-mod_alpha_bio <- lm(shannon ~ fct.elev + bio_18_mean + bio_4_mean + fct.escala + 
-                      bio_18_mean:fct.escala + bio_4_mean:fct.escala, 
+mod_alpha_bio <- lm(shannon ~ fct_elev + escala + bio_4 + bio_18 + 
+                      bio_4:escala + bio_18:escala, 
                               data = db_alpha)
-(sum_mod_alpha_bio  <-  summary(mod_alpha_bio))
 
+# beta
+mod_beta_bio <- lm(1-beta ~ fct_elev + escala + bio_4 + bio_18 + 
+                     bio_4:escala + bio_18:escala, 
+                   data = db_beta)
+# unificación
+(ms_alpha_beta_bio <- 
+    modelsummary(list('Alfa' =mod_alpha_bio, 'Beta'=mod_beta_bio), 
+                 fmt = fmt_sci(digits = 2),
+                 statistic = NULL, 
+                 estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
+                 gof_omit = 'AIC|BIC|Log|RMSE', 
+                 output = 'flextable'))
 
-pacman::p_load(modelsummary)
-
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ---- Hipótesis 3 ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Alfa
 models_alpha_elev_bio <- 
 db_alpha %>% 
-  nest(data = -fct.elev) %>% 
-  arrange(fct.elev) %>% 
+  nest(data = -fct_elev) %>% 
+  arrange(fct_elev) %>% 
   mutate(
-    model_bio18 = map(data, ~lm(shannon ~ bio_18_mean + fct.escala + bio_18_mean:fct.escala, data = .x)),
-    model_bio4 = map(data, ~lm(shannon ~ bio_4_mean + fct.escala + bio_4_mean:fct.escala, data = .x)),
-    coef_bio18 = map(model_bio18,
-                     ~.x %>% 
-                       summary() %>% 
-                       .$coefficients %>% 
-                       as.data.frame() %>% 
-                       rownames_to_column(var = 'variable') %>% 
-                       select(1,2,5)
-                       ),
-    coef_bio4 = map(model_bio4,
-                     ~.x %>% 
-                       summary() %>% 
-                       .$coefficients %>% 
-                       as.data.frame() %>% 
-                       rownames_to_column(var = 'variable') %>% 
-                       select(1,2,5)
-    ),
-  )
+    models = map(data, ~lm(shannon ~ escala + bio_4 + bio_18 + bio_4:escala + bio_18:escala, data = .x)))
 
-modelsummary(models_alpha_elev_bio[[3]] %>% set_names(models_alpha_elev_bio[[1]]), stars = TRUE)
-modelsummary(models_alpha_elev_bio[[4]] %>% set_names(models_alpha_elev_bio[[1]]), stars = TRUE)
+ms_models_per_elev_alpha <- 
+modelsummary(models_alpha_elev_bio[[3]] %>% set_names(models_alpha_elev_bio[[1]]), 
+             statistic = NULL, 
+             estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
+             gof_omit = 'AIC|BIC|Log|RMSE', 
+             output = 'flextable')
 
-modelplot(models_alpha_elev_bio[[3]] %>% set_names(models_alpha_elev_bio[[1]]), coef_omit = "Intercept|^fct")
-modelplot(models_alpha_elev_bio[[4]] %>% set_names(models_alpha_elev_bio[[1]]), coef_omit = "Intercept")
+# modelplot(models_alpha_elev_bio[[3]] %>% set_names(models_alpha_elev_bio[[1]]))
 
 
 # Beta
-mod_beta_bio <- lm(beta ~ fct.elev + bio_18_mean + bio_4_mean + fct.escala + 
-                      bio_18_mean:fct.escala + bio_4_mean:fct.escala, 
-                    data = db_beta)
-(sum_mod_beta_bio  <-  summary(mod_beta_bio))
-
 models_beta_elev_bio <- 
   db_beta %>% 
-  nest(data = -fct.elev) %>% 
-  arrange(fct.elev) %>% 
+  nest(data = -fct_elev) %>% 
+  arrange(fct_elev) %>% 
   mutate(
-    model_bio18 = map(data, ~lm(beta ~ bio_18_mean + fct.escala + bio_18_mean:fct.escala, data = .x)),
-    model_bio4 = map(data, ~lm(beta ~ bio_4_mean + fct.escala + bio_4_mean:fct.escala, data = .x)),
-    coef_bio18 = map(model_bio18,
-                     ~.x %>% 
-                       summary() %>% 
-                       .$coefficients %>% 
-                       as.data.frame() %>% 
-                       rownames_to_column(var = 'variable') %>% 
-                       select(1,2,5)
-    ),
-    coef_bio4 = map(model_bio4,
-                    ~.x %>% 
-                      summary() %>% 
-                      .$coefficients %>% 
-                      as.data.frame() %>% 
-                      rownames_to_column(var = 'variable') %>% 
-                      select(1,2,5)
-    ),
-  )
+    models = map(data, ~lm(1-beta ~ escala + bio_4 + bio_18 + bio_4:escala + bio_18:escala, data = .x)))
 
-modelsummary(models_beta_elev_bio[[3]] %>% set_names(models_alpha_elev_bio[[1]]), stars = TRUE)
-modelsummary(models_beta_elev_bio[[4]] %>% set_names(models_alpha_elev_bio[[1]]), stars = TRUE)
+ms_models_per_elev_beta <- 
+modelsummary(models_beta_elev_bio[[3]] %>% set_names(models_beta_elev_bio[[1]]), 
+             statistic = NULL, 
+             estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
+             gof_omit = 'AIC|BIC|Log|RMSE',
+             output = 'flextable') 
 
-
-modelplot(models_beta_elev_bio[[3]] %>% set_names(models_alpha_elev_bio[[1]]), coef_omit = "Intercept")
-modelplot(models_beta_elev_bio[[4]] %>% set_names(models_alpha_elev_bio[[1]]), coef_omit = "Intercept")
+# modelplot(models_alpha_elev_bio[[3]] %>% set_names(models_alpha_elev_bio[[1]]))
 
 
 
