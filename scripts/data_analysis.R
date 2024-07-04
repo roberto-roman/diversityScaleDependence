@@ -2,7 +2,8 @@
 # ---- load data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # source("scripts/scale.R")
-# rmarkdown::render("informe_final_Rmd")
+rmarkdown::render("final_report/informe_final.Rmd")
+                  
 pacman::p_load(modelsummary, tinytable)
 
 
@@ -97,7 +98,7 @@ db_beta <- db.beta.01 %>%
                              '3500' = '[3540, 4170]'
          ))
 
-
+db_alpha %>% count(fct_elev)
 # colocar en escrito principal
 (area_beta_elev_plot <- 
     db_beta %>%
