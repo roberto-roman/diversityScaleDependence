@@ -549,7 +549,7 @@ db_08 <-
 # ---- alpha diversity ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-alpha.bootstrap <- function(plots.agreggated, replicates = 9) {
+alpha.bootstrap <- function(plots.agreggated, replicates = 20) {
   
   replicates.x <- seq(1, replicates)
   
@@ -588,9 +588,7 @@ alpha.bootstrap <- function(plots.agreggated, replicates = 9) {
 
 ## se deberia hacer con reemplazo bootstrap?
 db.alpha <- 
-map(1:10, alpha.bootstrap, 10)
-
-# db.alpha[[2]][[7]][[1]]
+map(1:10, alpha.bootstrap, 30)
 
 db.alpha.01 <- 
 db.alpha %>% 
@@ -723,7 +721,7 @@ beta.bootstrap <- function(plots.agreggated, replicates = 10, beta.index = 'sor'
 }
 
 ## Beta diversity
-db.beta <- map(1:10, beta.bootstrap, replicates = 20)
+db.beta <- map(1:10, beta.bootstrap, replicates = 30)
 
 ## worldclim biovars are displayed as absolute difference between pairs of plots
 db.beta.01 <- 
