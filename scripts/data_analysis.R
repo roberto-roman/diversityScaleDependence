@@ -4,10 +4,11 @@
 # source("scripts/scale.R")
 rmarkdown::render("final_report/informe_final.Rmd")
                   
-pacman::p_load(modelsummary, tinytable, MASS, car, VGAM, recipes)
+pacman::p_load(modelsummary, tinytable, MASS, car, VGAM, recipes, sf, lme4, caret)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- Database final depurations ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+set.seed(123)
 db_alpha <- 
   db.alpha.01 %>% 
   filter(group != 17) %>%
@@ -15,6 +16,7 @@ db_alpha <-
   mutate(fct_plots =
            chop_evenly(plots_agreggated, 3),
          escala = plots_agreggated*25,
+         # group = as.factor(group),
          fct_escala =
            chop_evenly(escala, 3),
          fct_elev=fct_recode(fct_elev, 
@@ -23,12 +25,18 @@ db_alpha <-
                              '1600' = '[1651, 2281)',
                              '2300' = '[2281, 2911)',
                              '2900' = '[2911, 3540)',
-                             '3500' = '[3540, 4170]'
-         )) %>% 
-  nest(-c(fct_elev, group)) %>% 
-  distinct(fct_elev, .keep_all = T) %>% 
-  unnest()
+                             '3500' = '[3540, 4170]')
+         ) %>% 
+  group_by(fct_elev) %>% 
+  slice_sample(n = 300) %>% 
+  ungroup()
 
+db_alpha_02 <- 
+  db_alpha %>% 
+  mutate(across(where(is.numeric),
+                ~scale(.x) %>% as.vector()))
+
+set.seed(123)
 db_beta <- db.beta.01 %>% 
   set_names(names(.) %>% str_replace('\\.', '_') %>% str_remove('_mean')) %>% 
   filter(group != 17) %>%
@@ -47,11 +55,15 @@ db_beta <- db.beta.01 %>%
                              '2900' = '[2911, 3540)',
                              '3500' = '[3540, 4170]'
          )) %>% 
-  filter(beta > 0) %>% 
-  nest(-c(fct_elev, group)) %>% 
-  distinct(fct_elev, .keep_all = T) %>% 
-  unnest()
+  filter(beta != 0) %>% 
+  group_by(fct_elev) %>% 
+  slice_sample(n = 300) %>% 
+  ungroup()
 
+db_beta_02 <- 
+  db_beta %>% 
+  mutate(across(where(is.numeric),
+                ~scale(.x) %>% as.vector()))
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- multiple correlations ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -70,7 +82,6 @@ pacman::p_load(GGally)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- hipotesis 1 ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 ## Alpha diversidad
 # Colocar en texto principal
 (area_alpha_elev_plot <- 
@@ -103,7 +114,7 @@ pacman::p_load(GGally)
 diff_alpha_elev <- aov(shannon ~ fct_elev, data = db_alpha)
 posthoc_diff_alpha_elev <- TukeyHSD(diff_alpha_elev)
 
-diff_alpha_elev <- lm(shannon ~ fct_elev, data = db_alpha)
+diff_alpha_elev <- lm(yeo.johnson(shannon, 2) ~ fct_elev, data = db_alpha)
 diff_alpha_elev %>% summary()
 
 
@@ -143,7 +154,7 @@ alpha_vs_elev_grain %>% summary()
 
 ## modelos
 # diversidad beta vs altitud
-diff_beta_elev <- aov(beta_yeo ~ fct_elev, data = db_beta)
+diff_beta_elev <- aov(yeo.johnson(beta, -2.8) ~ fct_elev, data = db_beta)
 posthoc_diff_beta_elev <- TukeyHSD(diff_beta_elev)
 
 diff_beta_elev <- lm(beta_yeo ~ fct_elev, data = db_beta)
@@ -173,7 +184,6 @@ modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain),
              gof_omit = 'AIC|BIC|Log|RMSE', 
              coef_omit = '^fct.+\\d+$',
              output = 'flextable')
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- hipotesis 2 ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -188,7 +198,8 @@ modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain),
         color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
         fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
         y = 'Diversidad alpha (Shannon)') +
-   theme_bw())
+   theme_bw() +
+   theme(legend.position = 'bottom'))
 
 (alpha_bio11 <-
     db_alpha %>% 
@@ -200,7 +211,8 @@ modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain),
          color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
          fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
          y = 'Diversidad alpha (Shannon)') +
-    theme_bw())
+    theme_bw() +
+    theme(legend.position = 'bottom'))
 
 #beta
 (beta_bio17 <-
@@ -213,7 +225,8 @@ modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain),
          color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
          fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
          y = 'Diversidad beta (Sorensen)') +
-    theme_bw())
+    theme_bw() +
+    theme(legend.position = 'bottom'))
 
 (beta_bio11 <-
     db_beta %>% 
@@ -225,7 +238,8 @@ modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain),
          color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
          fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
          y = 'Diversidad beta (Sorensen)') +
-    theme_bw())
+    theme_bw() +
+    theme(legend.position = 'bottom'))
 
 ## modelos
 
@@ -236,7 +250,7 @@ mod_alpha_bio <- lm(shannon ~ fct_elev + escala + bio_11 + bio_17 +
 
 # beta
 mod_beta_bio <- lm(beta_yeo ~ fct_elev + escala + bio_11 + bio_17 + 
-                     bio_11:escala + bio_17:escala, 
+                     bio_11:escala + bio_17:escala,
                    data = db_beta)
 # unificación
 (ms_alpha_beta_bio <- 
@@ -248,7 +262,7 @@ mod_beta_bio <- lm(beta_yeo ~ fct_elev + escala + bio_11 + bio_17 +
                  output = 'flextable'))
 
 
-mod_alpha_bio %>% summary()
+mod_beta_bio %>% summary()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- Hipótesis 3 ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -339,6 +353,125 @@ car::vif(mod_beta_bio) %>%
 
 
 # Beta vs elev, escala, y bio a diferentes elevaciones
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ---- Mapa de area de estudio ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+pacman::p_load(ggnewscale, ggspatial, elevatr, cowplot)
+
+provincias <- st_read('C:/Users/rober/folder_mega/shape_files/provincias/nxprovincias.shp')
+
+plots_coord <- 
+db_08 %>% 
+  distinct(x.utm, y.utm, group, fct.elev) %>% 
+  semi_join(db_alpha, by = 'group') %>%
+  mutate(x = x.utm, y = y.utm) %>% 
+  st_as_sf(coords = c('x', 'y'), crs = 32717) %>% 
+  st_transform(4326)
+
+
+db_08 %>%
+  distinct(x.utm, y.utm, group, fct.elev, LOC) %>% 
+  view()
+
+  bbox_map <- 
+plots_coord %>% 
+  st_bbox() %>% 
+  as.list()
+
+bbox_rast <- 
+terra::rast(xmin=bbox_map$xmin-0.4, xmax=bbox_map$xmax+0.4, 
+            ymin=bbox_map$ymin, ymax=bbox_map$ymax)
+
+dem  <- elevatr::get_elev_raster(bbox_rast, z = 9) %>% 
+  rast()
+
+slope <- terrain(dem, "slope", unit="radians")
+aspect <- terrain(dem, "aspect", unit="radians")
+
+hill_shade <- shade(slope, aspect, 40, 270)
+hill_shade_df <- hill_shade %>% stretch() %>%  as.data.frame(xy = T) %>% tibble()
+pal_hill <- grey.colors(5)
+
+
+map_study_area <- 
+ggplot() +
+  
+  geom_raster(data = hill_shade_df, aes(x, y, fill = hillshade),
+              alpha = 0.5, show.legend = F) +
+  scale_fill_gradientn(colours = pal_hill) +
+  new_scale_fill() +
+  
+  geom_sf(data = provincias, fill = NA, color = 'black', size = 0.2) +
+  
+  geom_sf(data =  plots_coord, aes(fill = as.factor(group)),
+          shape = 24, alpha = 0.85, stroke = 1.2, color = 'black') +
+  scale_fill_brewer(type = 'qual', palette = 3, 
+                     guide = guide_legend('Grupo')) + 
+  new_scale_color() +
+  
+  # geom_sf_text(data =  provincias, aes(label = DPA_DESPRO)) +
+  
+  annotation_north_arrow(aes(location = 'tl')) +
+  annotation_scale() +
+  
+  coord_sf(xlim = c(bbox_map$xmin-0.2, bbox_map$xmax+0.2), 
+           ylim = c(bbox_map$ymin, bbox_map$ymax),
+           crs = 4326) +
+  
+  labs(x = 'Longitud', y = 'Latitud') +
+  theme_bw()
+
+# mapa ecuador con contexto continental
+bbox_ec <- list(xmin=-82.485, xmax=-73.960, ymin=-5.834, ymax=2.416)
+bbox_ec_vect <- rast(xmin=bbox_ec$xmin, xmax=bbox_ec$xmax, 
+                     ymin=bbox_ec$ymin, ymax=bbox_ec$ymax,
+                     ncol = 1, nrow=1) %>% 
+  terra::as.polygons() %>% 
+  st_as_sf()
+
+sf_use_s2(FALSE)
+sudamerica <- read_sf("C:/Users/rober/folder_mega/shape_files/sudamerica/vc965bq8111.shp") %>% 
+  st_crop(bbox_ec_vect) %>% 
+  group_by(name) %>% 
+  summarise() %>% 
+  mutate(name = if_else(name == 'ECUADOR', NA, name))
+
+sf_use_s2(TRUE)
+
+napo_colored <- 
+  provincias %>% 
+  mutate(color=if_else(DPA_DESPRO=='NAPO', '1', NA))
+
+map_ec <-
+ggplot() +
+  geom_sf(data = sudamerica, fill = 'white', color='black', size=0.2) +
+  
+  geom_sf_text(data = sudamerica, aes(label = name), size=2) +
+  
+  geom_sf(data=napo_colored, aes(fill=color), color='black', size=0.2,
+          show.legend = F) +
+  scale_fill_manual(values = 'grey', na.value = 'grey97') +
+  new_scale_fill() +
+  
+  geom_sf(data =  plots_coord,
+          shape = 3, alpha = 0.85, color = 'black') +
+  
+  coord_sf(expand = F, xlim = c(bbox_ec$xmin, bbox_ec$xmax),
+           ylim = c(bbox_ec$ymin, bbox_ec$ymax)) +
+  annotation_scale() +
+  theme_void()+ 
+  theme(axis.text = element_blank(), plot.background = element_rect(fill = 'ghostwhite', )) +
+  labs(x = '', y='')
+  
+
+# inset map
+map_total <- 
+ggdraw() + 
+  draw_plot(map_study_area) +
+  draw_plot(map_ec, 
+            x=0.62, y=0.26, width = 0.25)
+
 
 
 

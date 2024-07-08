@@ -27,6 +27,8 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
                       root.dir = '..')
 pacman::p_load(tidyverse, flextable, patchwork)
 ```
+# Resumen
+**Palabras clave**: Diversidad alfa y beta, dependencia espacial, gradiente altitudinal, temperatura y precipitación, plantas de sotobosque.
 
 # Introducción
 Los neotrópicos constituyen una de las regiones biogeográficas más cautivantes para explorar y describir los patrones de diversidad vegetal [@Bhatta2018], pero aún más interesante ha sido entender los procesos subyacentes involucrados en moldear estos patrones [@Magurran2010].  En la actualidad, se conoce que la importancia relativa de los procesos ecológicos e históricos que gobiernan los patrones de diversidad y ensamblaje de comunidades de plantas y animales es dependiente de la escala de análisis utilizada [@Barton2013; @Chave2013]. Por ejemplo, en árboles los resultados contrastantes respecto a la importancia relativa de predictores ecológicos y evolutivos a nivel regional y global, parece tener su origen en la granularidad o escala (i.e. tamaño de parcelas) empleada [@Keil2012;@Keil2019]. A nivel local, la importancia relativa de los procesos también podría subyacer en otros componentes espaciales, destacando la altitud por su alta correlación con gradientes ambientales [@Rahbek2005]. Entendiendo mejor la dependencia espacial de los patrones de biodiversidad vegetal y de los procesos que la mantienen, permitiría predecir cómo cambios ambientales afectan la biodiversidad a distintas escalas, así como delimitar las escalas apropiadas para estudiar los mecanismos involucrados en el ensamblaje de comunidades, además de ayudarnos a mejorar el manejo y restauración de la biota en el planeta [@Cavender-Bares2009; @MacNally2004; @Berdugo2022].
@@ -46,22 +48,15 @@ Para responder a estas preguntas, planteamos dos hipótesis. De acuerdo a los pa
 
 # Metodología
 ## Área de estudio
-El área de estudio se extiende en la provincia de Napo, Ecuador, entre los 250 y 3500 m. Tiene una extensión de 7800 Km^2^, abarcando las formaciones vegetales de Bosques siempreverde de tierras bajas, piemontano, montano bajo, montano, montano alto, y páramo.
+El área de estudio se extiende en la provincia de Napo, Ecuador, entre los 250 y 3500 m. Tiene una extensión de 7800 Km^2^, abarcando las formaciones vegetales de Bosques siempreverde de tierras bajas, piemontano, montano bajo, montano, montano alto, y páramo (Figura \@ref(fig:mapa)). La mayoría de parcelas estuvieron concentradas en la reserva biológica Yanayacu (0°35’S, 77°53’W; 1600 m), donde los estudios de interacciones biológicas continúan actualmente. 
 
-Los bosques de tierras bajas se caracterizan por tener una temperatura y precipitación promedio de 11324, 1324, respecticamente, con un dosel que alcanza los 30m de altura, y un subdosel de 12 m, dominando en el subdosel las familias Piperaceae, etc. 
+```{r fig.width=7, fig.height=5, out.width="100%", fig.cap='Área de estudio en la provincia de Napo, Ecuador. Los triángulos de color indican la ubicación de las parcelas y el grupo definido por DBSCAN al que pertenecen.', fig.id='mapa'}
+map_total
+```
 
-Los bosques piemontanos 
+Los bosques de tierras bajas de la amazonía se encuentran entre los 200 y 700 msnm, se caracterizan por tener una estratificación vertical bien definida, alcanzando el dosel los 30 m de altura, y el sotobosque los 12 m, dominando en el subdosel las familias Piperaceae, Melastomataceae, Lecytidaceae, y Moraceae [@DeLaTorre2008]. Las parcelas ubicadas en esta formación estuvieron en las localidades de Geyepari, en las riberas del río Cuyabeno, por lo que son constantemente inundadas por aguas blancas (várzeas). Por su parte, los bosques piemontanos, considerados como una transición entre los bosques de amazonía y los andinos, se distribuyen desde los 800 y los 1300 msnm, tienen un dosel de entre 15-30 m, con una estratificación vertical compleja dominada por las familias Myristicaceae, Fabaceae, Meliaceae, y Euphorbiaceae [@mae2013]. Las parcelas contenidas en esta formación se localizaron en las cercanías de Loreto, Río Chontayacu y Narupa. 
 
-
-Montanos bajos
-
-Montanos 
-
-Montanos altos
-
-Páramo
-
-La mayoría de parcelas están concentradas en la reserva biológica Yanayacu (0°35’S, 77°53’W; 1600 m), donde los estudios de interacciones biológicas continúan actualmente. 
+En las parcelas de los bosques montanos bajos, entre los 1300 y 2000 mnsm (Reserva Yanayacu, Baeza), el dosel alcanzó los 25 m, dominado por las familias Rubiaceae, Lauraceae y Melastomataceae, observándose un sotobosque denso [@mae2013]. Los bosques montanos, ubicados entre los 2000-2900 mnsnm, se caracterizaron por tener un dosel que alcanzó los 25 m, y por la neblina constante, donde la dominancia de elementos andinos de las familias Solanaceae y Myrsinaceae es conspicua [@DeLaTorre2008]. En las parcelas de bosques montanos altos, entre los 3000 y 3500 msnm, el dosel alcanzó los 15 m de altura, y la flora estuvo completamente dominada por elementos andinos, observándose árboles y arbustos muy ramificados y enanos, particularmente en el límite con el páramo (ceja andina), donde dominan las familias Melastomataceae, Rosaceae, Berberidaceae, y Cunoniaceae. Por último, las parcelas de páramo ubicadas a más de 3500 mnsnm, cercanas al Área protegida Antisana, los elementos arbustivos y herbáceos de las familias Asteraceae, Rosaceae, Cunoniaceae y Melastomaceae dominaron, alcanzando el estrato arbustivo los 5 m de altura [@mae2013].
 
 ## Muestreo en campo
 Los datos utilizados en este trabajo corresponden a una base de datos de diversidad e interacciones ecológicas entre plantas de sotobosque e insectos del Orden Lepidoptera. El objetivo principal de las investigaciones fue evaluar las interacciones ecológicas entre estos grupos (Para una descripción detallada de los métodos utilizados en campo ver @Dyer2007 y @Dyer2010). Los datos botánicos corresponden al censo de los árboles, arbustos y hierbas de sotobosque de hasta 10 m de altura dentro de parcelas circulares de 10 m de diámetro. La extensión temporal de muestreo abarca desde el año 2005 hasta el 2022. En estas parcelas, se tomó muestras de las plantas y se depositó los vouchers en herbarios ecuatorianos para confirmar la determinación taxonómica de los taxones observados. En total, la base de datos comprende 637 parcelas, distribuidas en las vertientes orientales de la cordillera oriental de los Andes en Ecuador. Estas parcelas están ubicadas en un extenso rango altitudinal, comprendido desde los 250 m hasta los 3500 m.
@@ -84,7 +79,7 @@ En cuanto a la segunda hipótesis (H2) respecto a la asociación entre la divers
 
 Para la última hipótesis, enfocada en la dependencia espacial de la asociación entre la diversidad alfa/beta y la temperatura/precipitación a diferentes rangos altitudinales (H3), se dividió la base de datos de cada índice de diversidad de acuerdo al rango altitudinal, y se ajustó una regresión lineal independiente a todas las particiones obtenidas. En estas 12 regresiones (6 rangos altitudinales X 2 índices de diversidad), se utilizó como predictores la escala de análisis, temperatura, precipitación, y la interacción de estas dos últimas con la escala. 
 
-En todos los modelos ajustados, se comprobó la no-multicolineadad, linealidad, normalidad, y homocedasticidad de los residuos, mediante la prueba del factor de inflación de la varianza (VIF), el gráfico de valores ajustados vs residuos, el gráfico qq-normal, y el gráfico de escala-locación, respectivamente [@Schutzenmeister2012; @Schmidt2018]. No se utilizó pruebas paramétricas para comprobar la normalidad y homocedasticidad, debido a su manifiesta limitación para detectar desviaciones importantes de estos supuestos cuando n es grande (n > 100) [@Lumley2002; @Schmidt2018; @Gomez-de-Mariscal2021]. De hecho, a medida que n incrementa, el valor p exhibido por pruebas paramétricas (e.g. Pruebas de Kolmogorov, Levene, y Shapiro-Wilk) se correlaciona inversamente con n [@Gomez-de-Mariscal2021], por lo que las pruebas detectan desviaciones mínimas a los supuestos en tamaños muestrales grandes, aún cuando los residuos cumplan los supuestos de los modelos lineales [@Schmidt2018].
+En todos los modelos ajustados, se comprobó la no-multicolineadad, linealidad, normalidad, y homocedasticidad de los residuos (Anexos \@ref(fig:supues_diff_alpha_elev), \@ref(fig:supues_diff_beta_elev), \@ref(fig:supues_alpha_vs_elev_grain), \@ref(fig:supues_beta_vs_elev_grain), \@ref(fig:supues_mod_alpha_bio), \@ref(fig:supues_mod_beta_bio)), mediante la prueba del factor de inflación de la varianza (VIF), el gráfico de valores ajustados vs residuos, el gráfico qq-normal, y el gráfico de escala-locación, respectivamente [@Schutzenmeister2012; @Schmidt2018]. No se utilizó pruebas paramétricas para comprobar la normalidad y homocedasticidad, debido a su manifiesta limitación para detectar desviaciones importantes de estos supuestos cuando n es grande (n > 100) [@Lumley2002; @Schmidt2018; @Gomez-de-Mariscal2021]. De hecho, a medida que n incrementa, el valor p exhibido por pruebas paramétricas (e.g. Pruebas de Kolmogorov, Levene, y Shapiro-Wilk) se correlaciona inversamente con n [@Gomez-de-Mariscal2021], por lo que las pruebas detectan desviaciones mínimas a los supuestos en tamaños muestrales grandes, aún cuando los residuos cumplan los supuestos de los modelos lineales [@Schmidt2018].
 
 Todos los procesos de depuración, manejo, análisis y reportería de datos, se realizaron en el software y ambiente de programación estadística R versión 4.3.2, con los paquetes dplyr [@Wickham2023], sf [@Pebesma2018], ggplot [@Wickham2016], plyr [@Wickham2011], tidyr [@Wickham2023a], y base [@RDevelopmentCoreTeam2023].
 
@@ -96,19 +91,19 @@ El patrón de diversidad alfa en los gradientes altitudinales fue ascendente, ob
 ```{r alfa_biovar_elev_plot_03, fig.width=7, fig.height=4, out.width="80%", fig.cap='A. Boxplot de diversidad alfa (Shannon) en diferentes rangos altitudinales. B. Diversidad beta (Sorensen) en diferentes rangos altitudinales', fig.id='alfa_biovar_elev_plot_03'}
 alfa_biovar_elev_plot_03 + beta_biovar_elev_plot_03 + plot_annotation(tag_levels = 'A')
 ```
-Respecto a los patrones de dependencia espacial de la diversidad alfa, en todos los rangos altitudinales la escala de análisis se correlacionó positivamente con la diversidad alfa, explicando el modelo el 77% de la variación de la diversidad alfa (F(11, 1788)=545.4, p<0.05; Tabla \@ref(tab:ms_alpha_beta_elev_grain)). Además, la asociación entre la diversidad alfa y la escala de análisis fue aumentando conforme aumentó la altitud (Anexo \@ref(fig:area_alpha_elev_plot)A). Entre los 2900 y 3500 msnm, la dependencia espacial de la diversidad alfa fue la más alta ($\beta$=0.71, p<0.05, y $\beta$=0.9, p<0.05, respectivamente). No obstante, a los 1600 msnm se reportó la tercera asociación más alta ($\beta$=0.65, p>0.05). La asociación más debil entre la diversidad alfa y la escala de análisis se apreció a los 400 msnm ($\beta$=0.21, p<0.05). 
+Respecto a los patrones de dependencia espacial de la diversidad alfa, en todos los rangos altitudinales la escala de análisis se correlacionó positivamente con la diversidad alfa, explicando el modelo el 60% de la variación de la diversidad alfa (F(11, 1788)=253.2, p<0.05; Tabla \@ref(tab:ms_alpha_beta_elev_grain)). Además, la asociación entre la diversidad alfa y la escala de análisis fue aumentando conforme aumentó la altitud (Anexo \@ref(fig:area_alpha_elev_plot)A). Entre los 2900 y 3500 msnm, la dependencia espacial de la diversidad alfa fue la más alta ($\beta$=0.9, p<0.05, y $\beta$=0.71, p<0.05, respectivamente). No obstante, a los 1600 msnm se reportó la tercera asociación más alta ($\beta$=0.53, p>0.05). La asociación más debil entre la diversidad alfa y la escala de análisis se apreció a los 400 msnm ($\beta$=0.21, p<0.05). 
 ```{r ms_alpha_beta_elev_grain, tab.cap='Coeficientes de los modelos lineales ajustados a la diversidad Alfa y Beta', tab.id="ms_alpha_beta_elev_grain"}
 ms_alpha_beta_elev_grain %>% 
   autofit() %>% 
   font(fontname = 'Times New Roman', part = 'all') %>% 
   fontsize(size = 10, part = 'all')
 ```
-En cuanto a la diversidad beta, la asociación con la escala de análisis fue negativa y más discreta en comparación a la diversidad alfa, explicando el modelo un 40% de la variación (F(11, 1732)=109.1, p<0.05; Tabla \@ref(tab:ms_alpha_beta_elev_grain)). En cierta medida, la asociación entre la diversidad beta y escala de análisis fue aumentando conforme aumentó la altitud, no obstante, este patrón fue menos conspicuo que la asociación con la diversidad alfa (Anexo \@ref(fig:area_alpha_elev_plot)B). Por ejemplo, en el rango altitudinal de 3500 msnm la asociación fue menor ($\beta$=-0.007, p<0.05) que a los 1000 msnm ($\beta$=-0.015, p<0.05). A los 2900 msnm la asociación entre la diversidad beta y escala de análisis alcanza su pico máximo ($\beta$=-0.029, p<0.05), y a los 400 mnsnm su valor más bajo, siendo despreciable su efecto ($\beta$=-0.001, p>0.05). No obstante, las diferencias en la magnitud de asociación entre los 2900 y 1000 msnm fueron mínimas.
+En cuanto a la diversidad beta, la asociación con la escala de análisis fue negativa y más discreta en comparación a la diversidad alfa, explicando el modelo un 42% de la variación (F(11, 1744)=118.6, p<0.05; Tabla \@ref(tab:ms_alpha_beta_elev_grain)). En cierta medida, la asociación entre la diversidad beta y escala de análisis fue aumentando conforme aumentó la altitud, no obstante, este patrón fue menos conspicuo que la asociación con la diversidad alfa (Anexo \@ref(fig:area_alpha_elev_plot)B). Por ejemplo, en el rango altitudinal de 3500 msnm la asociación fue menor ($\beta$=-0.007, p<0.05) que a los 1000 msnm ($\beta$=-0.014, p<0.05). A los 2900 msnm la asociación entre la diversidad beta y escala de análisis alcanza su pico máximo ($\beta$=-0.016, p<0.05), y a los 400 mnsnm su valor más bajo, siendo despreciable su efecto ($\beta$=-0.0016, p>0.05). No obstante, las diferencias en la magnitud de asociación entre los 2900 y 1000 msnm fueron mínimas.
 
 ## Asociación entre la diversidad de plantas de sotobosque y la temperatura/precipitación en diferentes escalas de análisis
-Al controlar el efecto de la altitud, el modelo de dependencia espacial de la diversidad alfa asociada a la temperatura/precipitación mostró una alta bondad de ajuste, llegando a explicar hasta un 77% de la varianza (F(10, 1789)=612.1, p<0.05; Tabla \@ref(tab:ms_alpha_beta_bio)). En general, la temperatura se asoció negativamente a la diversidad alfa ($\beta$= -0.96, p<0.05; Anexo \@ref(fig:alpha_bio)A), y la precipitación positivamente ($\beta$=0.05, p<0.05; Anexo \@ref(fig:alpha_bio)B). Además, el efecto de ambas variables fluctúo de acuerdo a la escala de análisis empleada. Al aumentar la escala de análisis, el efecto de la temperatura sobre la diversidad alfa aumentó ($\beta$= -0.0007, p<0.05), mientras que la asociación de la diversidad alfa con la precipitación se debilitó a mayores escalas ($\beta$= -0.00002, p<0.05).
+Al controlar el efecto de la altitud, el modelo de dependencia espacial de la diversidad alfa asociada a la temperatura/precipitación mostró una alta bondad de ajuste, llegando a explicar hasta un 68% de la varianza (F(10, 1789)=385.5, p<0.05; Tabla \@ref(tab:ms_alpha_beta_bio)). En general, la temperatura se asoció positivamente a la diversidad alfa ($\beta$= 1.34, p<0.05; Anexo \@ref(fig:alpha_bio)A), y la precipitación negativamente pero sin un efecto significativo ($\beta$= -0.002, p>0.05; Anexo \@ref(fig:alpha_bio)B). Al aumentar la escala de análisis, el efecto de la temperatura sobre la diversidad alfa disminuyó ($\beta$= -0.0013, p<0.05), mientras que la asociación de la diversidad alfa con la precipitación dependió de la escala ($\beta$= 0.00005, p>0.05).
 
-Similarmente, el modelo de dependencia espacial de la diversidad beta asociada a la temperatura/precipitación explicó hasta un 37% de la varianza (F(10, 1733)=104.4, p<0.05; Tabla \@ref(tab:ms_alpha_beta_bio)). En este modelo, el efecto de la temperatura sobre la diversidad beta fue positivo ($\beta$= 0.04, p<0.05; Anexo \@ref(fig:beta_bio)A), mientras que la precipitación no tuvo ninguna asociación significativa con la diversidad beta ($\beta$= -0.0005, p>0.05; Anexo \@ref(fig:beta_bio)B). Además, al aumentar la escala de análisis, el efecto de la temperatura disminuyó gradualmente ($\beta$= -0.0003, p<0.05), al igual que el efecto de la precipitación ($\beta$= 0.00001, p<0.05).
+Similarmente, el modelo de dependencia espacial de la diversidad beta asociada a la temperatura/precipitación explicó hasta un 39% de la varianza (F(10, 1745)=115.8, p<0.05; Tabla \@ref(tab:ms_alpha_beta_bio)). En este modelo, el efecto de la temperatura sobre la diversidad beta fue positivo ($\beta$= 0.03, p<0.05; Anexo \@ref(fig:beta_bio)A), mientras que la precipitación no tuvo ninguna asociación significativa con la diversidad beta ($\beta$= 0.0004, p>0.05; Anexo \@ref(fig:beta_bio)B). Además, al aumentar la escala de análisis, el efecto de la temperatura disminuyó gradualmente ($\beta$= -0.0002, p<0.05).
 
 ```{r ms_alpha_beta_bio, tab.cap='Coeficientes de los modelos lineales ajustados a la diversidad alfa y beta de plantas de sotobosque, utilizando como variables predictoras la altitud, precipitación (bio_18), temperatura (bio_11), y las interacciones temperatura*escala de análisis y precipitación*escala de análisis.', tab.id="ms_alpha_beta_bio"}
 ms_alpha_beta_bio %>% 
@@ -120,7 +115,7 @@ ms_alpha_beta_bio %>%
 
 ## Dependencia espacial de la asociación entre temperatura/precipitación y la diversidad de plantas de sotobosque en diferentes altitudes
 
-La asociación entre la alfa diversidad y la temperatura/precipitación no presentó una tendencia clara al analizar los modelos en distintos rangos altitudinales (Tabla \@ref(tab:ms_models_per_elev_alpha)). La temperatura tuvo el mayor efecto sobre la diversidad alfa a 1000 mnsm ($\beta$=20, p<0.05), y su efecto dependió de la escala de análisis utilizada, por lo que a mayor escala la magnitud del efecto de la temperatura aumentó ($\beta$=0.161, p<0.05). En el resto de rangos altitudinales, la temperatura no tuvo una asociación signiticativa con la diversidad alfa (p>0.05, Tabla \@ref(tab:ms_models_per_elev_alpha)). Por su parte, la asociación entre la precipitación y diversidad alfa fue apreciable únicamente a los 400 ($\beta$= -0.560, p<0.05) y 1000 msnm ($\beta$= -0.511, p<0.05), sin depender en ninguno de los casos de la escala de análisis ($\beta$=-0.004, p>0.05).
+La asociación entre la alfa diversidad y la temperatura/precipitación no presentó una tendencia clara al analizar los modelos en distintos rangos altitudinales (Tabla \@ref(tab:ms_models_per_elev_alpha)). La temperatura tuvo el mayor efecto sobre la diversidad alfa a 1000 mnsm ($\beta$=2.1, p<0.05), y su efecto no dependió de la escala de análisis utilizada ($\beta$=0.004, p>0.05). A 1600 msnm, la temperatura se asoció negativamente con la alfa diversidad ($\beta$=-1.6, p<0.05), y a los 2300 vuelve a ser positiva la relación ($\beta$=1, p<0.05). En el resto de rangos altitudinales, la temperatura no tuvo una asociación signiticativa con la diversidad alfa (p>0.05, Tabla \@ref(tab:ms_models_per_elev_alpha)). Por su parte, la asociación entre la precipitación y diversidad alfa fue reduciéndose a medida que aumentó la altitud. A 400 mnsn, la asociación negativa fue la más elevada ($\beta$= -0.560, p<0.05), seguida de los 1600 msnm ($\beta$= -0.511, p<0.05), donde la relación se torna positiva ($\beta$=0.05, p<0.05), sin depender en ninguno de los casos de la escala de análisis ($\beta$=0.0000, p>0.05).
 
 ```{r ms_models_per_elev_alpha, tab.cap='Coeficientes de los modelos lineales para cada rango altitudinal ajustados a la diversidad alfa de plantas de sotobosque, utilizando como variables predictoras la precipitación (bio_18), temperatura (bio_11), y las interacciones temperatura*escala de análisis y precipitación*escala de análisis.', tab.id="ms_models_per_elev_alpha"}
 ms_models_per_elev_alpha %>% 
@@ -129,8 +124,7 @@ ms_models_per_elev_alpha %>%
   fontsize(size = 10, part = 'all')
 ```
 
-La asociación de la diversidad beta con la temperatura aumentó desde los 2900 ($\beta$=0.026, p<0.05) hasta los 3500 mnsm ($\beta$=0.161, p<0.05). En ambos casos el efecto de la temperatura dependió de la escala de análisis, no obstante, a los 2900 msnm la dependencia aumentó el efecto ($\beta$=0.0001, p<0.05), mientras que a los 3500 lo disminuyó ($\beta$=-0.0001, p<0.05). Además, en el resto de rangos no se encontró una asociación significativa (p>0.05). Por su parte, la precipitación no se asoció con la diversidad beta en ninguno de los rangos altitudinales, ni tampoco dependió de la escala de análisis empleada.
-
+La asociación de la diversidad beta con la temperatura aumentó desde los 1000 ($\beta$=0.119, p<0.05) hasta los 3500 mnsm ($\beta$=0.161, p<0.05). A 2900 msnm, el efecto se reduce nuevamente ($\beta$=0.026, p<0.05). En los rangos más altos, 2900 y 3500 mnsn, el efecto de la temperatura dependió de la escala de análisis, no obstante, a los 2900 msnm la dependencia aumentó el efecto ($\beta$=0.0001, p<0.05), mientras que a los 3500 lo disminuyó ($\beta$=-0.001, p<0.05). Además, en el resto de rangos no se encontró una asociación significativa (p>0.05). Por su parte, la precipitación no se asoció con la diversidad beta en ninguno de los rangos altitudinales, ni tampoco dependió de la escala de análisis empleada.
 
 ```{r ms_models_per_elev_beta, tab.cap='Coeficientes de los modelos lineales para cada rango altitudinal ajustados a la diversidad beta de plantas de sotobosque, utilizando como variables predictoras la precipitación (bio_18), temperatura (bio_11), y las interacciones temperatura*escala de análisis y precipitación*escala de análisis.', tab.id="ms_models_per_elev_beta"}
 ms_models_per_elev_beta %>% 
@@ -138,48 +132,54 @@ ms_models_per_elev_beta %>%
   font(fontname = 'Times New Roman', part = 'all') %>% 
   fontsize(size = 10, part = 'all')
 ```
+# Conclusiones y recomendaciones
 
+# Literatura citada
+::: {#refs}
+:::
 
+\newpage
 # Anexos
-```{r fig.width=7, fig.height=6, out.width="80%", fig.cap='Múltiples correlaciones entre variables climáticas de WorldClim e índices de diversidad Alfa', fig.id='multiple_corr_alpha', fig.cap.pre='Anexo ', ig.autonum.start_at=1, fig.lp="supp-fig"}
+```{r fig.width=7, fig.height=6, out.width="80%", fig.cap='Múltiples correlaciones entre variables climáticas de WorldClim e índices de diversidad Alfa', fig.id='multiple_corr_alpha', fig.cap.pre='Anexo ', ig.autonum.start_at=1, fig.lp="supp-fig", fig.topcaption=TRUE}
 multiple_corr_alpha
 ```
-```{r fig.width=7, fig.height=6, out.width="80%", fig.cap='Múltiples correlaciones entre variables climáticas de WorldClim e índice de diversidad Beta', fig.id='multiple_corr_beta', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r fig.width=7, fig.height=6, out.width="80%", fig.cap='Múltiples correlaciones entre variables climáticas de WorldClim e índice de diversidad Beta', fig.id='multiple_corr_beta', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 multiple_corr_beta
 ```
-
+\newpage
 ```{r tab.cap='Anovas de 1 factor utilizando como variable de respuesta la diversidad Alfa y la beta, y la elevación como variable explicativa', tab.id="ms_anova_alpha_beta_elev", tab.cap.pre='Anexo ', tab.lp="supp-fig"}
 ms_anova_alpha_beta_elev %>% 
   autofit() %>% 
   font(fontname = 'Times New Roman', part = 'all') %>% 
   fontsize(size = 10, part = 'all')
 ```
-
-```{r area_alpha_elev_plot, fig.width=7, fig.height=8, out.width="80%", fig.cap=' A. Diversidad alfa (Shannon) en función de la escala de análisis y elevación. B. Diversidad Beta (Sorensen) en función de la escala de análisis y elevación.', fig.id='area_alpha_elev_plot', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r area_alpha_elev_plot, fig.width=7, fig.height=8, out.width="80%", fig.cap=' A. Diversidad alfa (Shannon) en función de la escala de análisis y elevación. B. Diversidad Beta (Sorensen) en función de la escala de análisis y elevación.', fig.id='area_alpha_elev_plot', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 area_alpha_elev_plot / area_beta_elev_plot + plot_annotation(tag_levels = 'A')
 ```
-
-```{r alpha_bio, fig.width=7, fig.height=8, out.width="80%", fig.cap=' A. Diversidad alfa (Shannon) en función de la temperatura a diferentes rangos altitudinales y escalas de análisis. B. Diversidad alfa (Shannon) en función de la precipitación a diferentes rangos altitudinales y escalas de análisis.', fig.id='alpha_bio', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r alpha_bio, fig.width=7, fig.height=8, out.width="100%", fig.cap=' A. Diversidad alfa (Shannon) en función de la temperatura a diferentes rangos altitudinales y escalas de análisis. B. Diversidad alfa (Shannon) en función de la precipitación a diferentes rangos altitudinales y escalas de análisis.', fig.id='alpha_bio', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 alpha_bio11 / alpha_bio17 + plot_annotation(tag_levels = 'A')
 ```
-
-```{r beta_bio, fig.width=7, fig.height=8, out.width="80%", fig.cap=' A. Diversidad beta (Sorensen) en función de la temperatura a diferentes rangos altitudinales y escalas de análisis. B. Diversidad beta (Sorensen) en función de la precipitación a diferentes rangos altitudinales y escalas de análisis.', fig.id='beta_bio', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r beta_bio, fig.width=7, fig.height=8, out.width="80%", fig.cap=' A. Diversidad beta (Sorensen) en función de la temperatura a diferentes rangos altitudinales y escalas de análisis. B. Diversidad beta (Sorensen) en función de la precipitación a diferentes rangos altitudinales y escalas de análisis.', fig.id='beta_bio', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 beta_bio11 / beta_bio17 + plot_annotation(tag_levels = 'A')
 ```
-
-```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo ANOVA para la diversidad alfa en función del rango altitudinal.', fig.id='supues_diff_alpha_elev', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo ANOVA para la diversidad alfa en función del rango altitudinal.', fig.id='supues_diff_alpha_elev', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 par(mfcol=c(3,2))
 diff_alpha_elev %>% plot()
 diff_alpha_elev$residuals %>% hist(main = 'Histogram of Residual') 
 ```
-
-```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo ANOVA para la diversidad beta en función del rango altitudinal.', fig.id='supues_diff_alpha_elev', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo ANOVA para la diversidad beta en función del rango altitudinal.', fig.id='supues_diff_beta_elev', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 par(mfcol=c(3,2))
 diff_beta_elev %>% plot()
 diff_beta_elev$residuals %>% hist(main = 'Histogram of Residual') 
 ```
-
-```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo de regresión lineal para la diversidad alfa en función de la escala de análisis y el rango altitudinal.', fig.id='supues_diff_alpha_elev', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo de regresión lineal para la diversidad alfa en función de la escala de análisis y el rango altitudinal.', fig.id='supues_alpha_vs_elev_grain', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 par(mfcol=c(3,2))
 alpha_vs_elev_grain %>% plot()
 alpha_vs_elev_grain$residuals %>% hist(main = 'Histogram of Residual')
@@ -188,8 +188,8 @@ car::vif(alpha_vs_elev_grain) %>%
   .[, "GVIF^(1/(2*Df))"] %>% 
   barplot(main = 'VIF')
 ```
-
-```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo de regresión lineal para la diversidad beta en función de la escala de análisis y el rango altitudinal.', fig.id='supues_diff_alpha_elev', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo de regresión lineal para la diversidad beta en función de la escala de análisis y el rango altitudinal.', fig.id='supues_beta_vs_elev_grain', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 par(mfcol=c(3,2))
 beta_vs_elev_grain %>% plot()
 beta_vs_elev_grain$residuals %>% hist(main = 'Histogram of Residual')
@@ -198,8 +198,8 @@ car::vif(beta_vs_elev_grain) %>%
   .[, "GVIF^(1/(2*Df))"] %>% 
   barplot(main = 'VIF')
 ```
-
-```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo de regresión lineal para la diversidad alfa en función de la escala de análisis, la temperatura, y la precipitación, controlando el efecto de la altitud.', fig.id='supues_diff_alpha_elev', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo de regresión lineal para la diversidad alfa en función de la escala de análisis, la temperatura, y la precipitación, controlando el efecto de la altitud.', fig.id='supues_mod_alpha_bio', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 par(mfcol=c(3,2))
 mod_alpha_bio %>% plot()
 mod_alpha_bio$residuals %>% hist(main = 'Histogram of Residual')
@@ -208,8 +208,8 @@ car::vif(mod_alpha_bio) %>%
   .[, "GVIF^(1/(2*Df))"] %>% 
   barplot(main = 'VIF')
 ```
-
-```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo de regresión lineal para la diversidad beta en función de la escala de análisis, la temperatura, y la precipitación, controlando el efecto de la altitud.', fig.id='supues_diff_alpha_elev', fig.cap.pre='Anexo ', fig.lp="supp-fig"}
+\newpage
+```{r fig.width=7, fig.height=8, out.width="80%", fig.cap='Gráficos diagnósticos del modelo de regresión lineal para la diversidad beta en función de la escala de análisis, la temperatura, y la precipitación, controlando el efecto de la altitud.', fig.id='supues_mod_beta_bio', fig.cap.pre='Anexo ', fig.lp="supp-fig", fig.topcaption=TRUE}
 par(mfcol=c(3,2))
 mod_beta_bio %>% plot()
 mod_beta_bio$residuals %>% hist(main = 'Histogram of Residual')
@@ -219,4 +219,3 @@ car::vif(mod_beta_bio) %>%
   barplot(main = 'VIF')
 ```
 
-# Literatura citada
