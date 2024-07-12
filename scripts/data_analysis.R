@@ -2,7 +2,7 @@
 # ---- load data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # source("scripts/scale.R")
-rmarkdown::render("final_report/informe_final.Rmd")
+# rmarkdown::render("final_report/informe_final.Rmd")
                   
 pacman::p_load(modelsummary, tinytable, MASS, car, VGAM, recipes, sf, lme4, caret)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,7 +33,7 @@ db_alpha <-
 
 db_alpha_02 <- 
   db_alpha %>% 
-  mutate(across(where(is.numeric),
+  mutate(across(c(where(is.numeric), -escala),
                 ~scale(.x) %>% as.vector()))
 
 set.seed(123)
@@ -93,6 +93,13 @@ pacman::p_load(GGally)
    facet_wrap(vars(fct_elev) ) +
    theme_bw())
 
+db_alpha %>%
+  ggplot(aes(fct_elev, shannon, fill = fct_escala, color = fct_escala)) +
+  # geom_point(alpha = 0.6, show.legend = F) +
+  geom_boxplot(alpha = 0.6, show.legend = T) +
+  labs(x = 'Elevación', y = 'Diversidad Beta (Sorensen)', color = 'Escala', fill = 'Escala') +
+  theme_bw()
+
 # Colocar en anexos este grafico para ejemplicar mayor riqueza a mayor altitud
 (alfa_biovar_elev_plot_02 <-
     db_alpha %>%
@@ -142,6 +149,13 @@ alpha_vs_elev_grain %>% summary()
     labs(x = 'Elevación', color = 'Escala de análisis', y = 'Diversidad Beta (Sorensen)') +
     scale_y_continuous(limits = c(0, 0.4)) +
     theme_bw())
+
+db_beta %>%
+  ggplot(aes(fct_elev, beta_yeo, fill = fct_plots, color = fct_plots)) +
+  geom_point(alpha = 0.6, show.legend = F) +
+  geom_boxplot(alpha = 0.6) +
+  labs(x = expression(paste("Área ", 'm'^2)), y = 'Diversidad Beta (Sorensen)', color = 'Elevación', fill = 'Elevación') +
+  theme_bw()
 
 # resultados generales de beta diversidad según el rango altitudinal
 (beta_biovar_elev_plot_03 <-
@@ -194,20 +208,20 @@ modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain),
    geom_point() +
    geom_smooth(method = 'lm', alpha = 0.1) +
    facet_wrap(vars(fct_elev), scales = 'free' ) +
-   labs(x = 'Precipitación (Precipitación del cuatrimestre más seco en mm)', 
+   labs(x = 'Precipitación (mm)', 
         color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
         fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
         y = 'Diversidad alpha (Shannon)') +
    theme_bw() +
    theme(legend.position = 'bottom'))
 
-(alpha_bio11 <-
+(alpha_bio4 <-
     db_alpha %>% 
-    ggplot(aes(bio_11, shannon, color = fct_escala, fill = fct_escala)) +
+    ggplot(aes(bio_4, shannon, color = fct_escala, fill = fct_escala)) +
     geom_point() +
     geom_smooth(method = 'lm', alpha = 0.1) +
     facet_wrap(vars(fct_elev), scales = 'free' ) +
-    labs(x = 'Temperatura (Temperatura media de Cuatrimestre más frío C°)', 
+    labs(x = 'Temperatura (C°)', 
          color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
          fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
          y = 'Diversidad alpha (Shannon)') +
@@ -221,20 +235,20 @@ modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain),
     geom_point() +
     geom_smooth(method = 'lm', alpha = 0.1) +
     facet_wrap(vars(fct_elev), scales = 'free' ) +
-    labs(x = 'Diferencia absoluta de Precipitación (Precipitación del cuatrimestre más seco en mm)', 
+    labs(x = 'Diferencia absoluta de Precipitación (mm)', 
          color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
          fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
          y = 'Diversidad beta (Sorensen)') +
     theme_bw() +
     theme(legend.position = 'bottom'))
 
-(beta_bio11 <-
+(beta_bio4 <-
     db_beta %>% 
-    ggplot(aes(bio_11, beta_yeo, color = fct_escala, fill = fct_escala)) +
+    ggplot(aes(bio_4, beta_yeo, color = fct_escala, fill = fct_escala)) +
     geom_point() +
     geom_smooth( method = 'lm', alpha = 0.1) +
     facet_wrap(vars(fct_elev), scales = 'free' ) +
-    labs(x = 'Diferencia absoluta Temperatura (Temperatura media de Cuatrimestre más frío C°)', 
+    labs(x = 'Diferencia absoluta Temperatura (C°)', 
          color = expression(paste('Escala de análisis ', '(m'^2, ')')), 
          fill = expression(paste('Escala de análisis ', '(m'^2, ')')),
          y = 'Diversidad beta (Sorensen)') +
@@ -244,25 +258,29 @@ modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain),
 ## modelos
 
 # alpha
-mod_alpha_bio <- lm(shannon ~ fct_elev + escala + bio_11 + bio_17 + 
-                      bio_11:escala + bio_17:escala, 
+mod_alpha_bio <- lm(shannon ~ fct_elev + escala + bio_4 + bio_17 + 
+                      bio_4:escala + bio_17:escala, 
                               data = db_alpha)
 
 # beta
-mod_beta_bio <- lm(beta_yeo ~ fct_elev + escala + bio_11 + bio_17 + 
-                     bio_11:escala + bio_17:escala,
+mod_beta_bio <- lm(beta_yeo ~ fct_elev + escala + bio_4 + bio_17 + 
+                     bio_4:escala + bio_17:escala,
                    data = db_beta)
+
+# Al excluir altitud, el efecto de la precipitacion y temperatura es mucho mas claro
+mod_bio_withoutelev_alpha <- lm(shannon ~ escala + bio_4 + bio_17 + bio_4:escala + bio_17:escala, data=db_alpha)
+mod_bio_withoutelev_beta <-lm(beta_yeo ~ escala + bio_4 + bio_17 + bio_4:escala + bio_17:escala, data=db_beta)
+
 # unificación
 (ms_alpha_beta_bio <- 
-    modelsummary(list('Alfa' =mod_alpha_bio, 'Beta'=mod_beta_bio), 
+    modelsummary(list('Alfa (i)' =mod_alpha_bio, 'Beta (i)'=mod_beta_bio,
+                      'Alfa (ii)' =mod_bio_withoutelev_alpha, 'Beta (ii)'=mod_bio_withoutelev_beta), 
                  fmt = fmt_sci(digits = 2),
                  statistic = NULL, 
                  estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
                  gof_omit = 'AIC|BIC|Log|RMSE', 
                  output = 'flextable'))
 
-
-mod_beta_bio %>% summary()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- Hipótesis 3 ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -272,7 +290,7 @@ db_alpha %>%
   nest(data = -fct_elev) %>% 
   arrange(fct_elev) %>% 
   mutate(
-    models = map(data, ~lm(shannon ~ escala + bio_11 + bio_17 + bio_11:escala + bio_17:escala, data = .x)),
+    models = map(data, ~lm(shannon ~ escala + bio_4 + bio_17 + bio_4:escala + bio_17:escala, data = .x)),
     )
 
 ms_models_per_elev_alpha <- 
@@ -288,7 +306,7 @@ models_beta_elev_bio <-
   nest(data = -fct_elev) %>% 
   arrange(fct_elev) %>% 
   mutate(
-    models = map(data, ~lm(beta_yeo ~ escala + bio_11 + bio_17 + bio_11:escala + bio_17:escala, data = .x)))
+    models = map(data, ~lm(beta_yeo ~ escala + bio_4 + bio_17 + bio_4:escala + bio_17:escala, data = .x)))
 
 ms_models_per_elev_beta <- 
 modelsummary(models_beta_elev_bio[[3]] %>% set_names(models_beta_elev_bio[[1]]), 
@@ -298,61 +316,91 @@ modelsummary(models_beta_elev_bio[[3]] %>% set_names(models_beta_elev_bio[[1]]),
              output = 'flextable') 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ---- supuestos de modelos ----
+# ---- alternate results H3 ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Alpha vs altitud
-par(mfcol=c(3,2))
-diff_alpha_elev %>% plot()
-diff_alpha_elev$residuals %>% hist(main = 'Histogram of Residual') 
-# leveneTest(diff_alpha_elev)
+models_alpha_scale_bio <- 
+  db_alpha_02 %>% 
+  nest(data = -escala) %>% 
+  arrange(escala) %>% 
+  mutate(
+    models = map(data, ~lm(shannon ~ bio_17 + bio_4, data = .x)),
+  )
+# db_alpha %>% count(escala)
+# db_alpha_02$escala %>% sd()
 
-# Beta vs altitud (actualizar en texto valores al elevar al cuadrado beta)
-par(mfcol=c(3,2))
-diff_beta_elev %>% plot()
-diff_beta_elev$residuals %>% hist(main = 'Histogram of Residual')
-# diff_beta_elev$residuals %>% shapiro.test()
-# leveneTest(diff_beta_elev)
+ms_models_per_scale_alpha <- 
+  modelsummary(models_alpha_scale_bio[[3]] %>% set_names(models_alpha_scale_bio[[1]]), 
+               statistic = NULL, 
+               estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
+               gof_omit = 'AIC|BIC|Log|RMSE',
+               output = 'flextable')
 
-# Alpha vs elevacion y escala
-par(mfcol=c(3,2))
-alpha_vs_elev_grain %>% plot()
-alpha_vs_elev_grain$residuals %>% hist(main = 'Histogram of Residual')
-# alpha_vs_elev_grain$residuals %>% ks.test('rnorm')
-car::vif(alpha_vs_elev_grain) %>%
-  .[, "GVIF^(1/(2*Df))"] %>% 
-  barplot(main = 'VIF')
-  
-# Beta vs elevacion y escala
-par(mfcol=c(3,2))
-beta_vs_elev_grain %>% plot()
-beta_vs_elev_grain$residuals %>% hist(main = 'Histogram of Residual')
-# beta_vs_elev_grain$residuals %>% ks.test('rnorm')
-car::vif(beta_vs_elev_grain) %>% 
-  .[, "GVIF^(1/(2*Df))"] %>% 
-  barplot(main = 'VIF')
+# Beta
+models_beta_scale_bio <- 
+  db_beta %>% 
+  nest(data = -escala) %>% 
+  arrange(escala) %>% 
+  mutate(
+    models = map(data, ~lm(beta_yeo ~ bio_4 + bio_17, data = .x)))
 
-# Alpha vs elev, escala, y bio
-par(mfcol=c(3,2))
-mod_alpha_bio %>% plot()
-mod_alpha_bio$residuals %>% hist(main = 'Histogram of Residual')
-# mod_alpha_bio$residuals %>% ks.test('rnorm')
-car::vif(mod_alpha_bio) %>% 
-  .[, "GVIF^(1/(2*Df))"] %>% 
-  barplot(main = 'VIF')
+ms_models_per_scale_beta <- 
+  modelsummary(models_beta_scale_bio[[3]] %>% set_names(models_beta_scale_bio[[1]]), 
+               statistic = NULL, 
+               estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
+               gof_omit = 'AIC|BIC|Log|RMSE',
+               output = 'flextable') 
 
-# Beta vs elev, escala, y bio
-par(mfcol=c(3,2))
-mod_beta_bio %>% plot()
-mod_beta_bio$residuals %>% hist(main = 'Histogram of Residual')
-# mod_beta_bio$residuals %>% ks.test('rnorm')
-car::vif(mod_beta_bio) %>% 
-  .[, "GVIF^(1/(2*Df))"] %>% 
-  barplot(main = 'VIF')
+db_alpha %>% 
+  ggplot(aes(bio_4, shannon, color = fct_escala)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap( ~fct_escala)
 
-# Alfa vs elev, escala, y bio a diferentes elevaciones
+db_beta %>% 
+  ggplot(aes(bio_17, beta_yeo, color = fct_escala)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap( ~fct_escala)
 
 
-# Beta vs elev, escala, y bio a diferentes elevaciones
+db_alpha %>% 
+  ggplot(aes(bio_4, bio_17)) +
+  geom_smooth() +
+  geom_point()
+
+cor.test(db_alpha$bio_4, db_alpha$bio_17)
+
+lm(bio_4 ~ bio_17, data=db_alpha) %>% 
+  summary()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ---- suportive results ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+dev.off()
+
+# Alta correlacion entre la temperatura/precipitacion y la altitud
+db_alpha %>% 
+  ggplot(aes(fct_elev, bio_4)) +
+  geom_boxplot()
+
+lm(bio_4 ~ fct_elev, data = db_alpha) %>% summary()
+
+db_alpha %>% 
+  ggplot(aes(fct_elev, bio_17)) +
+  geom_boxplot()
+
+lm(bio_17 ~ fct_elev, data = db_alpha) %>% summary()
+
+db_08 %>%
+  filter(group != 17) %>% 
+  group_by(fct.elev) %>% 
+  summarise(n=length(unique(GEN)))
+
+
+# db_alpha %>% 
+#   filter(plots_agreggated == 1) %>% 
+#   group_by(fct_elev) %>% 
+#   count()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- Mapa de area de estudio ----
@@ -369,13 +417,8 @@ db_08 %>%
   st_as_sf(coords = c('x', 'y'), crs = 32717) %>% 
   st_transform(4326)
 
-
-db_08 %>%
-  distinct(x.utm, y.utm, group, fct.elev, LOC) %>% 
-  view()
-
-  bbox_map <- 
-plots_coord %>% 
+bbox_map <- 
+  plots_coord %>% 
   st_bbox() %>% 
   as.list()
 
@@ -463,7 +506,6 @@ ggplot() +
   theme_void()+ 
   theme(axis.text = element_blank(), plot.background = element_rect(fill = 'ghostwhite', )) +
   labs(x = '', y='')
-  
 
 # inset map
 map_total <- 
@@ -472,7 +514,62 @@ ggdraw() +
   draw_plot(map_ec, 
             x=0.62, y=0.26, width = 0.25)
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ---- supuestos de modelos ----
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Alpha vs altitud
+par(mfcol=c(3,2))
+diff_alpha_elev %>% plot()
+diff_alpha_elev$residuals %>% hist(main = 'Histogram of Residual') 
+# leveneTest(diff_alpha_elev)
 
+# Beta vs altitud (actualizar en texto valores al elevar al cuadrado beta)
+par(mfcol=c(3,2))
+diff_beta_elev %>% plot()
+diff_beta_elev$residuals %>% hist(main = 'Histogram of Residual')
+# diff_beta_elev$residuals %>% shapiro.test()
+# leveneTest(diff_beta_elev)
+
+# Alpha vs elevacion y escala
+par(mfcol=c(3,2))
+alpha_vs_elev_grain %>% plot()
+alpha_vs_elev_grain$residuals %>% hist(main = 'Histogram of Residual')
+# alpha_vs_elev_grain$residuals %>% ks.test('rnorm')
+car::vif(alpha_vs_elev_grain) %>%
+  .[, "GVIF^(1/(2*Df))"] %>% 
+  barplot(main = 'VIF')
+
+# Beta vs elevacion y escala
+par(mfcol=c(3,2))
+beta_vs_elev_grain %>% plot()
+beta_vs_elev_grain$residuals %>% hist(main = 'Histogram of Residual')
+# beta_vs_elev_grain$residuals %>% ks.test('rnorm')
+car::vif(beta_vs_elev_grain) %>% 
+  .[, "GVIF^(1/(2*Df))"] %>% 
+  barplot(main = 'VIF')
+
+# Alpha vs elev, escala, y bio
+par(mfcol=c(3,2))
+mod_alpha_bio %>% plot()
+mod_alpha_bio$residuals %>% hist(main = 'Histogram of Residual')
+# mod_alpha_bio$residuals %>% ks.test('rnorm')
+car::vif(mod_alpha_bio) %>% 
+  .[, "GVIF^(1/(2*Df))"] %>% 
+  barplot(main = 'VIF')
+
+# Beta vs elev, escala, y bio
+par(mfcol=c(3,2))
+mod_beta_bio %>% plot()
+mod_beta_bio$residuals %>% hist(main = 'Histogram of Residual')
+# mod_beta_bio$residuals %>% ks.test('rnorm')
+car::vif(mod_beta_bio) %>% 
+  .[, "GVIF^(1/(2*Df))"] %>% 
+  barplot(main = 'VIF')
+
+# Alfa vs elev, escala, y bio a diferentes elevaciones
+
+
+# Beta vs elev, escala, y bio a diferentes elevaciones
 
 
 
