@@ -4,7 +4,7 @@
 # source("scripts/scale.R")
 # rmarkdown::render("final_report/informe_final.Rmd")
                   
-pacman::p_load(modelsummary, tinytable, MASS, car, VGAM, recipes, sf, lme4, caret)
+pacman::p_load(modelsummary, MASS, car, VGAM, recipes, sf, lme4, caret)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- Database final depurations ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,20 +86,21 @@ pacman::p_load(GGally)
 # Colocar en texto principal
 (area_alpha_elev_plot <- 
     db_alpha %>%
-   ggplot(aes(escala, shannon, fill = fct_elev, color = fct_elev)) +
+   ggplot(aes(escala, shannon, color = fct_elev)) +
    geom_point(alpha = 0.6, show.legend = F) +
    geom_smooth(method = 'lm', alpha = 0.1, show.legend = F) +
    labs(x = expression(paste("Área ", 'm'^2)), y = 'Diversidad Alpha (Shannon)', color = 'Elevación', fill = 'Elevación') +
    facet_wrap(vars(fct_elev) ) +
    theme_bw())
 
+(elev_scale_alpha <- 
 db_alpha %>%
-  ggplot(aes(fct_elev, shannon, fill = fct_escala, color = fct_escala)) +
+  ggplot(aes(fct_elev, shannon, color = fct_escala)) +
   # geom_point(alpha = 0.6, show.legend = F) +
-  geom_boxplot(alpha = 0.6, show.legend = T) +
-  labs(x = 'Elevación', y = 'Diversidad Beta (Sorensen)', color = 'Escala', fill = 'Escala') +
+  geom_boxplot( show.legend = T) +
+  labs(x = 'Elevación', y = 'Diversidad alfa (Shannon)', color = 'Escala', fill = 'Escala') +
   theme_bw()
-
+)
 # Colocar en anexos este grafico para ejemplicar mayor riqueza a mayor altitud
 (alfa_biovar_elev_plot_02 <-
     db_alpha %>%
@@ -150,12 +151,15 @@ alpha_vs_elev_grain %>% summary()
     scale_y_continuous(limits = c(0, 0.4)) +
     theme_bw())
 
-db_beta %>%
-  ggplot(aes(fct_elev, beta_yeo, fill = fct_plots, color = fct_plots)) +
-  geom_point(alpha = 0.6, show.legend = F) +
-  geom_boxplot(alpha = 0.6) +
-  labs(x = expression(paste("Área ", 'm'^2)), y = 'Diversidad Beta (Sorensen)', color = 'Elevación', fill = 'Elevación') +
-  theme_bw()
+(elev_scale_beta <- 
+    db_beta %>%
+    ggplot(aes(fct_elev, beta, color = fct_escala)) +
+    # geom_point(alpha = 0.6, show.legend = F) +
+    geom_boxplot( show.legend = T) +
+    labs(x = 'Elevación', y = 'Diversidad beta (Sorensen)', color = 'Escala', fill = 'Escala') +
+    scale_y_continuous(limits = c(0, 0.5)) +
+    theme_bw()
+)
 
 # resultados generales de beta diversidad según el rango altitudinal
 (beta_biovar_elev_plot_03 <-
@@ -198,6 +202,8 @@ modelsummary(list('Alfa' =alpha_vs_elev_grain, 'Beta'=beta_vs_elev_grain),
              gof_omit = 'AIC|BIC|Log|RMSE', 
              coef_omit = '^fct.+\\d+$',
              output = 'flextable')
+
+beta_vs_elev_grain %>% summary()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- hipotesis 2 ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -274,13 +280,14 @@ mod_bio_withoutelev_beta <-lm(beta_yeo ~ escala + bio_4 + bio_17 + bio_4:escala 
 # unificación
 (ms_alpha_beta_bio <- 
     modelsummary(list('Alfa (i)' =mod_alpha_bio, 'Beta (i)'=mod_beta_bio,
-                      'Alfa (ii)' =mod_bio_withoutelev_alpha, 'Beta (ii)'=mod_bio_withoutelev_beta), 
+                      'Alfa (ii)'=mod_bio_withoutelev_alpha, 'Beta (ii)'=mod_bio_withoutelev_beta), 
                  fmt = fmt_sci(digits = 2),
                  statistic = NULL, 
                  estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
                  gof_omit = 'AIC|BIC|Log|RMSE', 
                  output = 'flextable'))
 
+mod_beta_bio %>% summary()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- Hipótesis 3 ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -396,6 +403,18 @@ db_08 %>%
   group_by(fct.elev) %>% 
   summarise(n=length(unique(GEN)))
 
+db_alpha %>% 
+  ggplot(aes(bio_17, shannon, color = fct_escala)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap(~fct_escala)
+
+
+db_beta %>% 
+  ggplot(aes(bio_4, beta, color = fct_escala)) +
+  geom_point() +
+  geom_smooth(method = 'lm') +
+  facet_wrap(~fct_escala)
 
 # db_alpha %>% 
 #   filter(plots_agreggated == 1) %>% 
@@ -553,7 +572,7 @@ par(mfcol=c(3,2))
 mod_alpha_bio %>% plot()
 mod_alpha_bio$residuals %>% hist(main = 'Histogram of Residual')
 # mod_alpha_bio$residuals %>% ks.test('rnorm')
-car::vif(mod_alpha_bio) %>% 
+car::vif(mod_alpha_bio, type='predictor') %>% 
   .[, "GVIF^(1/(2*Df))"] %>% 
   barplot(main = 'VIF')
 
@@ -562,14 +581,24 @@ par(mfcol=c(3,2))
 mod_beta_bio %>% plot()
 mod_beta_bio$residuals %>% hist(main = 'Histogram of Residual')
 # mod_beta_bio$residuals %>% ks.test('rnorm')
-car::vif(mod_beta_bio) %>% 
+car::vif(mod_beta_bio, type='predictor') %>% 
   .[, "GVIF^(1/(2*Df))"] %>% 
   barplot(main = 'VIF')
 
-# Alfa vs elev, escala, y bio a diferentes elevaciones
-
+# Alfa vs escala, y bio
+par(mfcol=c(3,2))
+mod_bio_withoutelev_alpha %>% plot()
+mod_bio_withoutelev_alpha$residuals %>% hist(main = 'Histogram of Residual')
+# mod_beta_bio$residuals %>% ks.test('rnorm')
+car::vif(mod_bio_withoutelev_alpha, type='predictor') %>% 
+  .[, "GVIF^(1/(2*Df))"] %>%
+  barplot(main = 'VIF')
 
 # Beta vs elev, escala, y bio a diferentes elevaciones
-
-
+par(mfcol=c(3,2))
+mod_bio_withoutelev_beta %>% plot()
+mod_bio_withoutelev_beta$residuals %>% hist(main = 'Histogram of Residual')
+car::vif(mod_bio_withoutelev_beta, type='predictor') %>% 
+  .[, "GVIF^(1/(2*Df))"] %>%
+  barplot(main = 'VIF')
 
