@@ -1,7 +1,7 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- load data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# source("scripts/scale.R")
+source("scripts/scale.R")
 # rmarkdown::render("final_report/informe_final.Rmd")
                   
 pacman::p_load(modelsummary, MASS, car, VGAM, recipes, sf, lme4, caret)
