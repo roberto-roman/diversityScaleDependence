@@ -390,13 +390,19 @@ db_alpha %>%
   ggplot(aes(fct_elev, bio_4)) +
   geom_boxplot()
 
-lm(bio_4 ~ fct_elev, data = db_alpha) %>% summary()
+lm_elev_bio4 <- lm(bio_4 ~ fct_elev, data = db_alpha)
 
 db_alpha %>% 
   ggplot(aes(fct_elev, bio_17)) +
   geom_boxplot()
 
-lm(bio_17 ~ fct_elev, data = db_alpha) %>% summary()
+lm_elev_bio17 <- lm(bio_17 ~ fct_elev, data = db_alpha)
+
+lm_elev_bio <- 
+modelsummary(list('Precipitación'=lm_elev_bio17, 'Temperatura'=lm_elev_bio4), statistic = NULL, estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
+             gof_omit = 'AIC|BIC|Log|RMSE', output = 'flextable')
+
+cor(db_alpha$bio17, db_alpha$fct_elev)
 
 db_08 %>%
   filter(group != 17) %>% 

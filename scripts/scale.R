@@ -266,7 +266,7 @@ ds.taxize  <- gnr_datasources()
 
 dict.spp <- 
 db_05 %>% 
-  distinct(GEN) %>% 
+  distinct(GEN) %>%
   mutate(id.species = GEN,
          GEN = 
            GEN %>% 
@@ -279,32 +279,30 @@ db_05 %>%
            str_replace('Ruelia', 'Ruellia') %>% 
            str_replace('Fiscus', 'Ficus') %>% 
            str_replace('Purouma', 'Pourouma') %>% 
-           str_replace('Bohemeria', 'Boehmeria'))
+           str_replace('Bohemeria', 'Boehmeria') %>% 
+           str_replace('Monina sp', 'Monnina') %>% 
+           str_replace('Baccharis arbutifolia \\(Lam\\.\\) Vahl', 'Baccharis arbutifolia') %>% 
+           str_replace('Cestrum ramenosa', 'Cestrum racemosum'))
 
 dict.spp.01 <- 
 dict.spp %>% 
-  mutate(GEN = str_remove(GEN, ' sp$') %>% 
+  mutate(GEN = str_remove(GEN, ' sp ?[0-9]?$') %>% 
            str_to_sentence(),
-         df.parsed.names = 
-          map(GEN, ~gnr_resolve(.x, 
-                           data_source_ids = 165,
-                           canonical = T)))
+         df.parsed.names = map(GEN, ~taxize::tol_resolve(.x))
+  )
 
 dict.spp.02 <- 
 dict.spp.01 %>% 
   unnest(df.parsed.names, keep_empty = T) %>% 
-  mutate(matched_name2 = 
-           str_replace(matched_name2, 
-                       'Baccharis angustifolia', 
-                       'Baccharis arbutifolia')) %>% 
+  mutate(unique_name = unique_name %>% 
+           str_remove(' \\(.+$')) %>% 
   distinct(id.species, .keep_all = T) %>% 
-  select(id.species, matched_name2)
+  select(id.species, unique_name)
 
 db_05 <- 
 db_05 %>% 
   left_join(dict.spp.02, by = c('GEN' = 'id.species')) %>% 
-  mutate(GEN = matched_name2)
-
+  mutate(GEN = unique_name)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- DBSCAN cluster ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
