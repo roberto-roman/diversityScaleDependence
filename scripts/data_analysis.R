@@ -2,8 +2,16 @@
 # ---- load data ----
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 source("scripts/scale.R")
-# rmarkdown::render("final_report/informe_final.Rmd")
-                  
+
+## Escribir documento Word con Caratula
+rmarkdown::render("final_report/informe_final.Rmd")
+
+# officer::read_docx() %>% 
+#   officer::body_add_docx(src = 'final_report/uce_cover.docx') %>% 
+#   officer::body_add_docx(src="final_report/informe_final.docx", pos = 'after') %>% 
+#   print(target="final_report/informe_final_rev.docx")
+       
+
 pacman::p_load(modelsummary, MASS, car, VGAM, recipes, sf, lme4, caret)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ---- Database final depurations ----
@@ -401,8 +409,6 @@ lm_elev_bio17 <- lm(bio_17 ~ fct_elev, data = db_alpha)
 lm_elev_bio <- 
 modelsummary(list('Precipitación'=lm_elev_bio17, 'Temperatura'=lm_elev_bio4), statistic = NULL, estimate  = "{estimate} [{conf.low}, {conf.high}] {stars}",
              gof_omit = 'AIC|BIC|Log|RMSE', output = 'flextable')
-
-cor(db_alpha$bio17, db_alpha$fct_elev)
 
 db_08 %>%
   filter(group != 17) %>% 
